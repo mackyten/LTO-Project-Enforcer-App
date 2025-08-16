@@ -6,6 +6,7 @@ import 'package:enforcer_auto_fine/pages/home/components/violation_item.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
+import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,10 +34,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final _licenseController = TextEditingController();
 
   // Form validation keys
-  final _step1Key = GlobalKey<FormState>();
-  final _step2Key = GlobalKey<FormState>();
-  final _step3Key = GlobalKey<FormState>();
-  final _step4Key = GlobalKey<FormState>();
+  final step1Key = GlobalKey<FormState>();
+  final step2Key = GlobalKey<FormState>();
 
   // Violation checkboxes
   Map<String, bool> violations = {
@@ -79,8 +78,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void nextStep() {
-    if (_validateCurrentStep()) {
+  void nextStep(BuildContext context) {
+    if (_validateCurrentStep(context)) {
       if (currentStep < totalSteps - 1) {
         setState(() {
           currentStep++;
@@ -118,44 +117,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _progressController.forward(from: 0);
   }
 
-  bool _validateCurrentStep() {
+  bool _validateCurrentStep(BuildContext context) {
     switch (currentStep) {
       case 0:
-        return _step1Key.currentState?.validate() ?? false;
+        return step1Key.currentState?.validate() ?? false;
       case 1:
-        return _step2Key.currentState?.validate() ?? false;
+        return step2Key.currentState?.validate() ?? false;
       case 2:
         if (!violations.values.any((selected) => selected)) {
-          _showAlert('Please select at least one violation.');
+          showAlert(
+            context,
+            'Required',
+            'Please select at least one violation.',
+          );
           return false;
         }
         return true;
       case 3:
         if (evidencePhoto == null) {
-          _showAlert('Please upload evidence photo.');
+          showAlert(context, 'Required', 'Please upload evidence photo.');
           return false;
         }
         return true;
       default:
         return true;
     }
-  }
-
-  void _showAlert(String message) {
-    HapticFeedback.heavyImpact();
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text('Required'),
-        content: Text(message),
-        actions: [
-          CupertinoDialogAction(
-            child: Text('OK'),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _pickImage(bool isLicense) async {
@@ -175,12 +161,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         HapticFeedback.lightImpact();
       }
     } catch (e) {
-      _showAlert('Failed to pick image. Please try again.');
+      //showAlert(context, 'Reqiured', 'Failed to pick image. Please try again.');
     }
   }
 
-  void submitForm() {
-    if (_validateCurrentStep()) {
+  void submitForm(BuildContext context) {
+    if (_validateCurrentStep(context)) {
       HapticFeedback.mediumImpact();
 
       showCupertinoDialog(
@@ -259,8 +245,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 currentStep: currentStep,
                 totalSteps: totalSteps,
                 previousStep: previousStep,
-                submitForm: submitForm,
-                nextStep: nextStep,
+                submitForm: () => submitForm(context),
+                nextStep: () => nextStep(context),
               ),
             ],
           ),
@@ -271,7 +257,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildStep1() {
     return Form(
-      key: _step1Key,
+      key: step1Key,
       child: SingleChildScrollView(
         padding: EdgeInsets.all(30),
         child: Column(
@@ -317,7 +303,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _buildStep2() {
     return Form(
-      key: _step2Key,
+      key: step2Key,
       child: SingleChildScrollView(
         padding: EdgeInsets.all(30),
         child: Column(
