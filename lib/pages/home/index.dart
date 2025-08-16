@@ -2,6 +2,10 @@ import 'dart:io';
 
 import 'package:enforcer_auto_fine/pages/home/components/header.dart';
 import 'package:enforcer_auto_fine/pages/home/components/navigation.dart';
+import 'package:enforcer_auto_fine/pages/home/components/violation_item.dart';
+import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
+import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
+import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -283,14 +287,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ),
             SizedBox(height: 30),
-            _buildTextField(
+            AppTextField(
               controller: _fullnameController,
               label: 'Full Name',
               placeholder: 'Enter full name',
               required: true,
             ),
             SizedBox(height: 25),
-            _buildTextField(
+            AppTextField(
               controller: _addressController,
               label: 'Complete Address',
               placeholder: 'Street, City, State, ZIP Code',
@@ -298,7 +302,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               maxLines: 4,
             ),
             SizedBox(height: 25),
-            _buildTextField(
+            AppTextField(
               controller: _phoneController,
               label: 'Phone Number',
               placeholder: '(123) 456-7890',
@@ -329,16 +333,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ),
             SizedBox(height: 30),
-            _buildTextField(
+            AppTextField(
               controller: _licenseController,
               label: 'License Number',
               placeholder: 'Enter license number',
               required: true,
             ),
             SizedBox(height: 25),
-            _buildLabel('License Photo'),
+            AppTextFieldLabel(label: "License Photo", required: true),
             SizedBox(height: 10),
-            _buildImagePicker(
+            AppImagePicker(
               image: licensePhoto,
               onTap: () => _pickImage(true),
               icon: '📷',
@@ -367,15 +371,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           SizedBox(height: 30),
-          _buildLabel('Select all that apply:', required: true),
+          AppTextFieldLabel(label: "Select all that apply:", required: true),
           SizedBox(height: 15),
-          _buildViolationItem('🚗 Speeding', 'speeding'),
-          _buildViolationItem('🚫 Illegal Parking', 'illegal-parking'),
-          _buildViolationItem('🚦 Running Traffic Light', 'traffic-light'),
-          _buildViolationItem('⚠️ Reckless Driving', 'reckless-driving'),
-          _buildViolationItem('📱 Phone Use While Driving', 'phone-use'),
-          _buildViolationItem('🔒 No Seatbelt', 'no-seatbelt'),
-          _buildViolationItem('📝 Other', 'other'),
+          ViolationItem(label: '🚗 Speeding', item: 'speeding'),
+          ViolationItem(label: '🚫 Illegal Parking', item: 'illegal-parking'),
+          ViolationItem(
+            label: '🚦 Running Traffic Light',
+            item: 'traffic-light',
+          ),
+          ViolationItem(label: '⚠️ Reckless Driving', item: 'reckless-driving'),
+          ViolationItem(label: '📱 Phone Use While Driving', item: 'phone-use'),
+          ViolationItem(label: '🔒 No Seatbelt', item: 'no-seatbelt'),
+          ViolationItem(label: '📝 Other', item: 'other'),
         ],
       ),
     );
@@ -397,9 +404,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           SizedBox(height: 30),
-          _buildLabel('Photo Evidence', required: true),
+          AppTextFieldLabel(label: 'Photo Evidence', required: true),
           SizedBox(height: 10),
-          _buildImagePicker(
+          AppImagePicker(
             image: evidencePhoto,
             onTap: () => _pickImage(false),
             icon: '📸',
@@ -428,217 +435,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String placeholder,
-    bool required = false,
-    int maxLines = 1,
-    TextInputType? keyboardType,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(label, required: required),
-        SizedBox(height: 10),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          keyboardType: keyboardType,
-          style: TextStyle(color: Colors.white, fontSize: 17),
-          decoration: InputDecoration(
-            hintText: placeholder,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Color(0xFF007AFF), width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Color(0xFFFF3B30), width: 2),
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          ),
-          validator: required
-              ? (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'This field is required';
-                  }
-                  return null;
-                }
-              : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLabel(String text, {bool required = false}) {
-    return Text.rich(
-      TextSpan(
-        text: text,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.9),
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
-        children: required
-            ? [
-                TextSpan(
-                  text: ' *',
-                  style: TextStyle(color: Color(0xFFFF3B30)),
-                ),
-              ]
-            : [],
-      ),
-    );
-  }
-
-  Widget _buildViolationItem(String text, String key) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            violations[key] = !violations[key]!;
-          });
-          HapticFeedback.lightImpact();
-        },
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          padding: EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: violations[key]!
-                ? Color(0xFF007AFF).withOpacity(0.15)
-                : Colors.white.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: violations[key]!
-                  ? Color(0xFF007AFF)
-                  : Colors.white.withOpacity(0.12),
-              width: violations[key]! ? 2 : 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: violations[key]!
-                      ? Color(0xFF007AFF)
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: violations[key]!
-                        ? Color(0xFF007AFF)
-                        : Colors.white.withOpacity(0.5),
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: violations[key]!
-                    ? Icon(Icons.check, color: Colors.white, size: 16)
-                    : null,
-              ),
-              SizedBox(width: 15),
-              Expanded(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePicker({
-    required File? image,
-    required VoidCallback onTap,
-    required String icon,
-    required String text,
-    required String subtext,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-        decoration: BoxDecoration(
-          color: image != null
-              ? Color(0xFF30D158).withOpacity(0.1)
-              : Colors.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: image != null
-                ? Color(0xFF30D158)
-                : Colors.white.withOpacity(0.3),
-            width: 2,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: Column(
-          children: [
-            if (image == null) ...[
-              Text(icon, style: TextStyle(fontSize: 40)),
-              SizedBox(height: 12),
-              Text(
-                text,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 17,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 5),
-              Text(
-                subtext,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 15,
-                ),
-              ),
-            ] else ...[
-              Icon(Icons.check_circle, color: Color(0xFF30D158), size: 40),
-              SizedBox(height: 12),
-              Text(
-                '✅ Image selected',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 5),
-              Text(
-                'Tap to change',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

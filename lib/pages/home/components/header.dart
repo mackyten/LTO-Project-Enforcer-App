@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Header extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
-final VoidCallback previousStep;
+  final VoidCallback previousStep;
   final Animation<double> progressAnimation;
 
   const Header({
@@ -81,29 +81,34 @@ final VoidCallback previousStep;
             ),
           ),
           SizedBox(height: 20),
-          AnimatedBuilder(
-            animation: progressAnimation,
-            builder: (context, child) {
-              return Container(
-                width: double.infinity,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: progressAnimation.value,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color(0xFF007AFF),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-              );
-            },
+          LinearProgressIndicator(
+            value: (currentStep +1) / totalSteps,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
           ),
+          // AnimatedBuilder(
+          //   animation: progressAnimation,
+          //   builder: (context, child) {
+          //     return Container(
+          //       width: double.infinity,
+          //       height: 3,
+          //       decoration: BoxDecoration(
+          //         color: Colors.white.withOpacity(0.2),
+          //         borderRadius: BorderRadius.circular(2),
+          //       ),
+          //       child: FractionallySizedBox(
+          //         alignment: Alignment.centerLeft,
+          //         widthFactor: progressAnimation.value,
+          //         child: Container(
+          //           decoration: BoxDecoration(
+          //             color: Color(0xFF007AFF),
+          //             borderRadius: BorderRadius.circular(2),
+          //           ),
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // ),
         ],
       ),
     );

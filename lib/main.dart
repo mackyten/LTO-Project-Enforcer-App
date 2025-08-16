@@ -1,6 +1,8 @@
+import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/pages/home/index.dart';
 import 'package:enforcer_auto_fine/wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,23 +14,30 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        inputDecorationTheme: const InputDecorationTheme(
-          border: OutlineInputBorder(),
-          // You can also add other properties here, such as:
-          // labelStyle: TextStyle(color: Colors.deepPurple),
-          // filled: true,
-          // fillColor: Colors.grey[200],
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<HomeBloc>(
+          create: (context) => HomeBloc(),
         ),
-        useMaterial3: true,
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          inputDecorationTheme: const InputDecorationTheme(
+            border: OutlineInputBorder(),
+            // You can also add other properties here, such as:
+            // labelStyle: TextStyle(color: Colors.deepPurple),
+            // filled: true,
+            // fillColor: Colors.grey[200],
+          ),
+          useMaterial3: true,
+        ),
+        routes: {
+          '/': (context) => const Wrapper(),
+          '/home': (context) => const HomePage(),
+        },
       ),
-      routes: {
-        '/': (context) => const Wrapper(),
-        '/home': (context) => const HomePage(),
-      },
     );
   }
 }
