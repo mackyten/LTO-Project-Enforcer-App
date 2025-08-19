@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "150226999462",
+    "project_id": "lingayen-lto",
+    "storage_bucket": "lingayen-lto.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150226999462:android:b1dba8d3e45a6cb1803c67",
+        "android_client_info": {
+          "package_name": "com.example.enforcer_auto_fine"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATY5vx4rfAREgBIzDhx-BceEE4yfo31lU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
