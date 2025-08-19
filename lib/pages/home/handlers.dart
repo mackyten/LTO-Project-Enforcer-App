@@ -1,45 +1,21 @@
-import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:enforcer_auto_fine/pages/home/models/report_model.dart';
 
-import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
-import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+Future<bool> handleSave(ReportModel data) async {
+  try {
+    // Get an instance of Firestore
+    final db = FirebaseFirestore.instance;
 
-bool handleValidateCurrentStep(
-  BuildContext context,
-  int currentStep,
-  GlobalKey<FormState> step1Key,
-  GlobalKey<FormState> step2Key,
-  File? evidencePhoto,
-) {
-  final homeBlocState = context.read<HomeBloc>().state;
+    // Convert your ReportModel to a Map
+    final reportData = data.toJson();
 
-  switch (currentStep) {
-    case 0:
-      return step1Key.currentState?.validate() ?? false;
-    case 1:
-      return step2Key.currentState?.validate() ?? false;
-    case 2:
-      // Check the violations from the BLoC state
-      if (homeBlocState is HomeLoaded) {
-        if (!homeBlocState.violations.values.any((selected) => selected)) {
-          showAlert(
-            context,
-            'Required',
-            'Please select at least one violation.',
-          );
-          return false;
-        }
-        return true;
-      }
-      return false; // Return false if the state isn't HomeLoaded
-    case 3:
-      if (evidencePhoto == null) {
-        showAlert(context, 'Required', 'Please upload evidence photo.');
-        return false;
-      }
-      return true;
-    default:
-      return true;
+    // Add a new document with a generated ID to the 'reports' collection
+    await db.collection('reports').add(reportData);
+
+    print('Report successfully saved to Firestore!');
+    return true;
+  } catch (e) {
+    print('Error saving report to Firestore: $e');
+    return false;
   }
 }

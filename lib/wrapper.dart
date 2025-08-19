@@ -1,4 +1,6 @@
+import 'package:enforcer_auto_fine/pages/auth/login/index.dart';
 import 'package:enforcer_auto_fine/pages/home/index.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class Wrapper extends StatefulWidget {
@@ -14,18 +16,27 @@ class _WrapperState extends State<Wrapper> {
 
   @override
   Widget build(BuildContext context) {
-    bool isAuthenticated = true;
-    if (isAuthenticated) {
-        return Navigator(
-        onGenerateRoute: (settings) {
-          return MaterialPageRoute(
-            builder: (context) => const HomePage(),
-            settings: const RouteSettings(name: '/home'),
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Show a loading indicator while the stream is waiting for data
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
-        },
-      );
-    } else {    
-      return const Placeholder();
-    }
+        }
+
+        // Check if the user is authenticated (snapshot.hasData returns true if user is not null)
+        if (snapshot.hasData) {
+          // If the user is signed in, show the home page.`
+          return const HomePage();
+        } else {
+          // If the user is not signed in, show the login page.
+          return const LoginPage();
+        }
+      },
+    );
   }
 }

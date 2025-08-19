@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:enforcer_auto_fine/pages/home/components/header.dart';
 import 'package:enforcer_auto_fine/pages/home/components/navigation.dart';
 import 'package:enforcer_auto_fine/pages/home/components/violation_item.dart';
+import 'package:enforcer_auto_fine/pages/home/handlers.dart';
+import 'package:enforcer_auto_fine/pages/home/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
@@ -10,7 +12,10 @@ import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'bloc/home_bloc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -36,17 +41,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // Form validation keys
   final step1Key = GlobalKey<FormState>();
   final step2Key = GlobalKey<FormState>();
-
-  // Violation checkboxes
-  Map<String, bool> violations = {
-    'speeding': false,
-    'illegal-parking': false,
-    'traffic-light': false,
-    'reckless-driving': false,
-    'phone-use': false,
-    'no-seatbelt': false,
-    'other': false,
-  };
 
   // Image files
   File? licensePhoto;
@@ -118,19 +112,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   bool _validateCurrentStep(BuildContext context) {
+    final homeBlocState = context.read<HomeBloc>().state;
+
     switch (currentStep) {
       case 0:
         return step1Key.currentState?.validate() ?? false;
       case 1:
         return step2Key.currentState?.validate() ?? false;
       case 2:
-        if (!violations.values.any((selected) => selected)) {
-          showAlert(
-            context,
-            'Required',
-            'Please select at least one violation.',
-          );
-          return false;
+        if (homeBlocState is HomeLoaded) {
+          if (!homeBlocState.violations.values.any((selected) => selected)) {
+            showAlert(
+              context,
+              'Required',
+              'Please select at least one violation.',
+            );
+            return false;
+          }
         }
         return true;
       case 3:
@@ -165,9 +163,36 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  void submitForm(BuildContext context) {
+  Future<void> submitForm(BuildContext context) async {
+    final homeBlocState = context.read<HomeBloc>().state;
+    if (homeBlocState is! HomeLoaded) {
+      showAlert(
+        context,
+        'Error',
+        'Home data not loaded. Please try again later.',
+      );
+      return;
+    }
     if (_validateCurrentStep(context)) {
       HapticFeedback.mediumImpact();
+
+      final data = ReportModel(
+        fullname: _fullnameController.text,
+        address: _addressController.text,
+        phoneNumber: _phoneController.text,
+        licenseNumber: _licenseController.text,
+        licensePhoto: "",
+        violations: homeBlocState.violations.entries
+            .where((entry) => entry.value)
+            .map((entry) => entry.key)
+            .toList(),
+      );
+
+      var result = await handleSave(data);
+      if (!result) {
+        showAlert(context, 'Error', 'Failed to save report. Please try again.');
+        return;
+      }
 
       showCupertinoDialog(
         context: context,
@@ -191,16 +216,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _resetForm() {
+    final homeBlocState = context.read<HomeBloc>().state;
+
     setState(() {
       currentStep = 0;
       _fullnameController.clear();
       _addressController.clear();
       _phoneController.clear();
       _licenseController.clear();
-      violations.updateAll((key, value) => false);
+
       licensePhoto = null;
       evidencePhoto = null;
     });
+    if (homeBlocState is HomeLoaded) {
+      setState(() {
+        homeBlocState.violations.updateAll((key, value) => false);
+      });
+    }
     _pageController.animateToPage(
       0,
       duration: Duration(milliseconds: 400),
