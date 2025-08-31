@@ -1,5 +1,6 @@
 import 'package:enforcer_auto_fine/pages/auth/login/index.dart';
-import 'package:enforcer_auto_fine/pages/home/index.dart';
+import 'package:enforcer_auto_fine/pages/home/home.dart';
+import 'package:enforcer_auto_fine/pages/violation/index.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 

@@ -1,5 +1,5 @@
 // violation_item.dart
-import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
+import 'package:enforcer_auto_fine/pages/violation/bloc/violation_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +12,7 @@ class ViolationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
+    return BlocBuilder<ViolationBloc, ViolationState>(
       builder: (context, state) {
         if (state is! HomeLoaded) {
           return const SizedBox.shrink();
@@ -24,7 +24,7 @@ class ViolationItem extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 12),
             child: GestureDetector(
               onTap: () {
-                context.read<HomeBloc>().add(
+                context.read<ViolationBloc>().add(
                   UpdateViolationEvent(
                     key: item,
                     value: !value, // Toggle the value

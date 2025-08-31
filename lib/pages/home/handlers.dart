@@ -1,21 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:enforcer_auto_fine/pages/home/models/report_model.dart';
+import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
+import 'package:enforcer_auto_fine/shared/models/response_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-Future<bool> handleSave(ReportModel data) async {
+import '../../enums/collections.dart';
+
+Future<ResponseModel<EnforcerModel>> fetchUserData() async {
   try {
-    // Get an instance of Firestore
-    final db = FirebaseFirestore.instance;
+    var response = ResponseModel<EnforcerModel>(null, false, null);
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      response.success = false;
+      response.message = 'No authenticated user found';
+    }
+    final userUUID = currentUser?.uid;
+    final collectionReference = FirebaseFirestore.instance.collection(
+      Collections.enforcers.name,
+    );
+    final querySnapshot = await collectionReference
+        .where('uuid', isEqualTo: userUUID)
+        .get();
 
-    // Convert your ReportModel to a Map
-    final reportData = data.toJson();
-
-    // Add a new document with a generated ID to the 'reports' collection
-    await db.collection('reports').add(reportData);
-
-    print('Report successfully saved to Firestore!');
-    return true;
+    if (querySnapshot.docs.isNotEmpty) {
+      var data = EnforcerModel.fromJson(querySnapshot.docs.first.data());
+      response.data = data;
+      response.success = true;
+    } else {
+      response.success = false;
+      response.message = 'No user data found';
+    }
+    return response;
   } catch (e) {
-    print('Error saving report to Firestore: $e');
-    return false;
+    return ResponseModel(null, false, 'Error fetching user data: $e');
   }
 }
