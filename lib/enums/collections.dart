@@ -1,0 +1,4 @@
+enum Collections {
+  reports,
+  enforcers,
+}

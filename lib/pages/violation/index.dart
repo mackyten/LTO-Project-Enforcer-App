@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:enforcer_auto_fine/pages/home/components/header.dart';
-import 'package:enforcer_auto_fine/pages/home/components/navigation.dart';
-import 'package:enforcer_auto_fine/pages/home/components/violation_item.dart';
-import 'package:enforcer_auto_fine/pages/home/handlers.dart';
-import 'package:enforcer_auto_fine/pages/home/models/report_model.dart';
+import 'package:enforcer_auto_fine/pages/violation/components/header.dart';
+import 'package:enforcer_auto_fine/pages/violation/components/navigation.dart';
+import 'package:enforcer_auto_fine/pages/violation/components/violation_item.dart';
+import 'package:enforcer_auto_fine/pages/violation/handlers.dart';
+import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
@@ -15,16 +15,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'bloc/home_bloc.dart';
+import '../../enums/folders.dart';
+import '../../utils/file_uploader.dart';
+import 'bloc/violation_bloc.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class ViolationPage extends StatefulWidget {
+  const ViolationPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<ViolationPage> createState() => _ViolationPageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+class _ViolationPageState extends State<ViolationPage> with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _progressController;
   late Animation<double> progressAnimation;
@@ -37,6 +39,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   final _licenseController = TextEditingController();
+  final _plateController = TextEditingController();
 
   // Form validation keys
   final step1Key = GlobalKey<FormState>();
@@ -44,6 +47,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   // Image files
   File? licensePhoto;
+  File? platePhoto;
   File? evidencePhoto;
 
   final ImagePicker _picker = ImagePicker();
@@ -112,7 +116,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   bool _validateCurrentStep(BuildContext context) {
-    final homeBlocState = context.read<HomeBloc>().state;
+    final homeBlocState = context.read<ViolationBloc>().state;
 
     switch (currentStep) {
       case 0:
@@ -142,7 +146,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _pickImage(bool isLicense) async {
+  Future<void> _pickImage(StorageFolders type) async {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.camera,
@@ -150,10 +154,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       );
       if (image != null) {
         setState(() {
-          if (isLicense) {
+          if (type == StorageFolders.licensePhotos) {
             licensePhoto = File(image.path);
-          } else {
+          } else if (type == StorageFolders.evidencePhotos) {
             evidencePhoto = File(image.path);
+          } else if (type == StorageFolders.platePhotos) {
+            platePhoto = File(image.path);
+          }else {
+            throw Exception('Invalid folder type');
           }
         });
         HapticFeedback.lightImpact();
@@ -164,7 +172,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Future<void> submitForm(BuildContext context) async {
-    final homeBlocState = context.read<HomeBloc>().state;
+    final homeBlocState = context.read<ViolationBloc>().state;
     if (homeBlocState is! HomeLoaded) {
       showAlert(
         context,
@@ -175,13 +183,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
     if (_validateCurrentStep(context)) {
       HapticFeedback.mediumImpact();
+      var licenseUrl = "";
+      var plateUrl = "";
+      var evidenceUrl = "";
+      if(licensePhoto != null)
+      {
+         licenseUrl = await uploadPhoto(licensePhoto!, StorageFolders.licensePhotos);
+      }
+      if(platePhoto != null)
+      {
+         plateUrl = await uploadPhoto(platePhoto!, StorageFolders.platePhotos);
+      }
+      if(evidencePhoto != null)
+      {
+         evidenceUrl = await uploadPhoto(evidencePhoto!, StorageFolders.evidencePhotos);
+      }
 
       final data = ReportModel(
         fullname: _fullnameController.text,
         address: _addressController.text,
         phoneNumber: _phoneController.text,
         licenseNumber: _licenseController.text,
-        licensePhoto: "",
+        licensePhoto: licenseUrl,
+        plateNumber: _plateController.text,
+        platePhoto: plateUrl,
+        evidencePhoto: evidenceUrl,
         violations: homeBlocState.violations.entries
             .where((entry) => entry.value)
             .map((entry) => entry.key)
@@ -216,7 +242,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void _resetForm() {
-    final homeBlocState = context.read<HomeBloc>().state;
+    final homeBlocState = context.read<ViolationBloc>().state;
 
     setState(() {
       currentStep = 0;
@@ -342,7 +368,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'License Information',
+              'License and Plate Information',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
@@ -362,7 +388,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             SizedBox(height: 10),
             AppImagePicker(
               image: licensePhoto,
-              onTap: () => _pickImage(true),
+              onTap: () => _pickImage(StorageFolders.licensePhotos),
+              icon: '📷',
+              text: 'Tap to upload license photo',
+              subtext: 'JPG, PNG up to 10MB',
+            ),
+
+            SizedBox(height: 30),
+            AppTextField(
+              controller: _plateController,
+              label: 'plate Number',
+              placeholder: 'Enter plate number',
+              required: true,
+            ),
+            SizedBox(height: 25),
+            AppTextFieldLabel(label: "Plate Photo", required: true),
+            SizedBox(height: 10),
+            AppImagePicker(
+              image: platePhoto,
+              onTap: () => _pickImage(StorageFolders.platePhotos),
               icon: '📷',
               text: 'Tap to upload license photo',
               subtext: 'JPG, PNG up to 10MB',
@@ -426,7 +470,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           SizedBox(height: 10),
           AppImagePicker(
             image: evidencePhoto,
-            onTap: () => _pickImage(false),
+            onTap: () => _pickImage(StorageFolders.evidencePhotos),
             icon: '📸',
             text: 'Tap to upload proof photo',
             subtext: 'Clear photo of the violation',
@@ -435,17 +479,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
+              color: Colors.white.withValues(alpha: 0.03),//.withOpacity(0.03),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.03),
                 width: 1,
               ),
             ),
             child: Text(
               '🔒 By submitting this report, you confirm that all information provided is accurate and truthful. Your report will be reviewed by the appropriate authorities.',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 13,
                 height: 1.4,
               ),
