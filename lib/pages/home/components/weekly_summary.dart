@@ -1,0 +1,138 @@
+import 'package:enforcer_auto_fine/pages/home/components/title.dart';
+import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
+import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
+import 'package:flutter/material.dart';
+
+class WeeklySummary extends StatefulWidget {
+  const WeeklySummary({super.key});
+
+  @override
+  State<WeeklySummary> createState() => _WeeklySummaryState();
+}
+
+class _WeeklySummaryState extends State<WeeklySummary> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TitleBuilder(
+                title: 'Weekly Summary',
+                icon: Icon(
+                  Icons.assessment,
+                  color: MainColor().success,
+                ),
+              ),
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  _buildSummaryCard(
+                    'Total Violations',
+                    '15',
+                    MainColor().tertiary,
+                  ),
+                  SizedBox(width: 16),
+                  _buildSummaryCard('This Week', '15', MainColor().tertiary),
+                ],
+              ),
+              SizedBox(height: 16),
+
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: MainColor().background,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Most Common Violations",
+                      style: TextStyle(
+                        fontSize: FontSizes().h4,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    Divider(),
+
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "1. ",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text("Over Speeding"),
+                            ],
+                          ),
+                          CircleAvatar(
+                            radius: 10,
+                            backgroundColor: MainColor().tertiary,
+                            child: Text(
+                              '7',
+                              style: TextStyle(
+                                color: MainColor().textPrimary,
+                                fontSize: FontSizes().caption,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(String title, String count, Color color) {
+    return Expanded(
+      child: Container(
+        constraints: BoxConstraints(maxWidth: 300),
+        height: 100,
+        child: Card(
+          color: color,
+          elevation: 10,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                count,
+                style: TextStyle(
+                  color: MainColor().textPrimary,
+                  fontSize: FontSizes().h2,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                title,
+                style: TextStyle(
+                  color: MainColor().textPrimary,
+                  fontSize: FontSizes().caption,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
