@@ -1,3 +1,4 @@
+import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/utils/greetings.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +31,7 @@ class Greetings extends StatelessWidget {
                 children: [
                   Text(
                     '${getGreeting()}, $firstName!',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: FontSizes().h3, fontWeight: FontWeight.bold),
                   ),
                   Text('Welcome to the Enforcer Auto Fine App.'),
                 ],

@@ -1,6 +1,6 @@
 import 'package:cloudinary_url_gen/cloudinary.dart';
 import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
-import 'package:enforcer_auto_fine/pages/home/home.dart';
+import 'package:enforcer_auto_fine/pages/home/index.dart';
 import 'package:enforcer_auto_fine/pages/violation/bloc/violation_bloc.dart';
 import 'package:enforcer_auto_fine/pages/violation/index.dart';
 import 'package:enforcer_auto_fine/wrapper.dart';

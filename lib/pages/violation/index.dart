@@ -8,6 +8,7 @@ import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
+import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,8 @@ class ViolationPage extends StatefulWidget {
   State<ViolationPage> createState() => _ViolationPageState();
 }
 
-class _ViolationPageState extends State<ViolationPage> with TickerProviderStateMixin {
+class _ViolationPageState extends State<ViolationPage>
+    with TickerProviderStateMixin {
   late PageController _pageController;
   late AnimationController _progressController;
   late Animation<double> progressAnimation;
@@ -160,7 +162,7 @@ class _ViolationPageState extends State<ViolationPage> with TickerProviderStateM
             evidencePhoto = File(image.path);
           } else if (type == StorageFolders.platePhotos) {
             platePhoto = File(image.path);
-          }else {
+          } else {
             throw Exception('Invalid folder type');
           }
         });
@@ -186,17 +188,20 @@ class _ViolationPageState extends State<ViolationPage> with TickerProviderStateM
       var licenseUrl = "";
       var plateUrl = "";
       var evidenceUrl = "";
-      if(licensePhoto != null)
-      {
-         licenseUrl = await uploadPhoto(licensePhoto!, StorageFolders.licensePhotos);
+      if (licensePhoto != null) {
+        licenseUrl = await uploadPhoto(
+          licensePhoto!,
+          StorageFolders.licensePhotos,
+        );
       }
-      if(platePhoto != null)
-      {
-         plateUrl = await uploadPhoto(platePhoto!, StorageFolders.platePhotos);
+      if (platePhoto != null) {
+        plateUrl = await uploadPhoto(platePhoto!, StorageFolders.platePhotos);
       }
-      if(evidencePhoto != null)
-      {
-         evidenceUrl = await uploadPhoto(evidencePhoto!, StorageFolders.evidencePhotos);
+      if (evidencePhoto != null) {
+        evidenceUrl = await uploadPhoto(
+          evidencePhoto!,
+          StorageFolders.evidencePhotos,
+        );
       }
 
       final data = ReportModel(
@@ -271,13 +276,7 @@ class _ViolationPageState extends State<ViolationPage> with TickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e), Color(0xFF0f3460)],
-          ),
-        ),
+        decoration: appBg,
         child: SafeArea(
           child: Column(
             children: [
@@ -479,7 +478,7 @@ class _ViolationPageState extends State<ViolationPage> with TickerProviderStateM
           Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03),//.withOpacity(0.03),
+              color: Colors.white.withValues(alpha: 0.03), //.withOpacity(0.03),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.03),
