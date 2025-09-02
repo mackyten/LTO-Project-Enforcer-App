@@ -1,16 +1,14 @@
 import 'package:enforcer_auto_fine/pages/home/components/title.dart';
+import 'package:enforcer_auto_fine/pages/home/models.dart';
+import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:flutter/material.dart';
 
-class WeeklySummary extends StatefulWidget {
-  const WeeklySummary({super.key});
+class WeeklySummary extends StatelessWidget {
+  final WeekleySummaryModel weekleySummary;
+  const WeeklySummary({super.key, required this.weekleySummary});
 
-  @override
-  State<WeeklySummary> createState() => _WeeklySummaryState();
-}
-
-class _WeeklySummaryState extends State<WeeklySummary> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -23,10 +21,7 @@ class _WeeklySummaryState extends State<WeeklySummary> {
             children: [
               TitleBuilder(
                 title: 'Weekly Summary',
-                icon: Icon(
-                  Icons.assessment,
-                  color: MainColor().success,
-                ),
+                icon: Icon(Icons.assessment, color: MainColor().success),
               ),
               SizedBox(height: 16),
 
@@ -34,11 +29,15 @@ class _WeeklySummaryState extends State<WeeklySummary> {
                 children: [
                   _buildSummaryCard(
                     'Total Violations',
-                    '15',
+                    weekleySummary.totalViolations.toString(),
                     MainColor().tertiary,
                   ),
                   SizedBox(width: 16),
-                  _buildSummaryCard('This Week', '15', MainColor().tertiary),
+                  _buildSummaryCard(
+                    'This Week',
+                    weekleySummary.thisWeeksViolation.toString(),
+                    MainColor().tertiary,
+                  ),
                 ],
               ),
               SizedBox(height: 16),
@@ -63,35 +62,12 @@ class _WeeklySummaryState extends State<WeeklySummary> {
 
                     Divider(),
 
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                "1. ",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text("Over Speeding"),
-                            ],
-                          ),
-                          CircleAvatar(
-                            radius: 10,
-                            backgroundColor: MainColor().tertiary,
-                            child: Text(
-                              '7',
-                              style: TextStyle(
-                                color: MainColor().textPrimary,
-                                fontSize: FontSizes().caption,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    Column(
+                      children: weekleySummary.mostCommon.asMap().entries.map((
+                        entry,
+                      ) {
+                        return _buildViolationItem(entry.key, entry.value);
+                      }).toList(),
                     ),
                   ],
                 ),
@@ -99,6 +75,39 @@ class _WeeklySummaryState extends State<WeeklySummary> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildViolationItem(int index, CommonViolationModel item) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+        children: [
+          Row(
+            children: [
+              Text(
+                "${index + 1}. ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(item.violationName),
+            ],
+          ),
+          CircleAvatar(
+            radius: 10,
+            backgroundColor: MainColor().tertiary,
+            child: Text(
+              item.count.toString(),
+              style: TextStyle(
+                color: MainColor().textPrimary,
+                fontSize: FontSizes().caption,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

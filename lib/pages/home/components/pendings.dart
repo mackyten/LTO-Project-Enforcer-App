@@ -29,7 +29,7 @@ class _PendingsState extends State<Pendings> {
               ),
               SizedBox(height: 16),
 
-   
+              Text("To do..."),
               SizedBox(height: 16),
 
        

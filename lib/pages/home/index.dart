@@ -2,7 +2,6 @@ import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/pages/home/components/pendings.dart';
 import 'package:enforcer_auto_fine/pages/home/components/weekly_summary.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
-import 'package:enforcer_auto_fine/utils/greetings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,6 +25,18 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: ElevatedButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/violations');
+        },
+        style: ElevatedButton.styleFrom(
+          shape: CircleBorder(), 
+          padding: EdgeInsets.all(12),
+          backgroundColor: Colors.blue, 
+          foregroundColor: Colors.white,
+        ),
+        child: Icon(Icons.add), // The icon
+      ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -60,7 +71,7 @@ class _HomePageState extends State<HomePage> {
                                 state.enforcerData.profilePictureUrl,
                           ),
                           SizedBox(height: 20),
-                          WeeklySummary(),
+                          WeeklySummary(weekleySummary: state.weeklySummary),
                           SizedBox(height: 20),
                           Pendings(),
                         ],

@@ -13,15 +13,15 @@ class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
   final EnforcerModel enforcerData;
-  final List<ReportModel> reports;
+  final WeekleySummaryModel weeklySummary;
 
   const HomeLoaded({
     required this.enforcerData,
-    required this.reports,
+    required this.weeklySummary,
   });
 
   @override
-  List<Object?> get props => [enforcerData, reports];
+  List<Object?> get props => [enforcerData, weeklySummary];
 }
 
 class HomeError extends HomeState {
