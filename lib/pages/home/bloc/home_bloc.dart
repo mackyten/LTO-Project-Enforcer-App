@@ -1,4 +1,6 @@
+import 'package:enforcer_auto_fine/pages/home/components/weekly_summary.dart';
 import 'package:enforcer_auto_fine/pages/home/handlers.dart';
+import 'package:enforcer_auto_fine/pages/home/models.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
@@ -10,6 +12,9 @@ part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
+
+  final _handlers = HomeHandlers();
+
   HomeBloc() : super(HomeInitial()) {
     on<FetchHomeData>(_onFetchHomeData);
   }
@@ -19,7 +24,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
     try {
       // Fetch enforcer data
-      final enforcerResponse = await fetchUserData();
+      final enforcerResponse = await _handlers.fetchUserData();
+      final weeklySummary = await _handlers.getWeeklySummary();
       if (!enforcerResponse.success || enforcerResponse.data == null) {
         emit(HomeError(message: enforcerResponse.message!));
         return;
@@ -32,7 +38,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       
       emit(HomeLoaded(
         enforcerData: enforcerData,
-        reports: [],//reports,
+        weeklySummary: weeklySummary,
       ));
     } catch (e) {
       emit(HomeError(message: e.toString()));

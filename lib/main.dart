@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (context) => const Wrapper(),
           'home': (context) => const HomePage(),
-          '/violation': (context) => const ViolationPage(),
+          '/violations': (context) => const ViolationPage(),
         },
       ),
     );

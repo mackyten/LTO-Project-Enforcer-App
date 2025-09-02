@@ -25,8 +25,24 @@ class ReportModel {
     this.trackingNumber,
     this.createdById,
     required this.violations,
-    required this.evidencePhoto
+    required this.evidencePhoto,
   });
+
+  factory ReportModel.fromJson(Map<String, dynamic> json) {
+    return ReportModel(
+      fullname: json['fullname'] as String,
+      address: json['address'] as String,
+      phoneNumber: json['phoneNumber'] as String,
+      licenseNumber: json['licenseNumber'] as String,
+      licensePhoto: json['licensePhoto'] as String,
+      plateNumber: json['plateNumber'] as String,
+      platePhoto: json['platePhoto'] as String,
+      evidencePhoto: json['evidencePhoto'] as String,
+      trackingNumber: json['trackingNumber'] as String?,
+      createdById: json['createdById'] as String?,
+      violations: List<String>.from(json['violations'] as List),
+    );
+  }
 
   Map<String, dynamic> toJson() {
     final user = FirebaseAuth.instance.currentUser;
