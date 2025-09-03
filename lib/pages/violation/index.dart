@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:enforcer_auto_fine/pages/violation/components/header.dart';
@@ -10,18 +11,24 @@ import 'package:enforcer_auto_fine/shared/components/textfield/components/label.
 import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
+import 'package:enforcer_auto_fine/utils/local_file_saver.dart';
+import 'package:enforcer_auto_fine/utils/tracking_no_generator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../enums/folders.dart';
 import '../../utils/file_uploader.dart';
 import 'bloc/violation_bloc.dart';
 
 class ViolationPage extends StatefulWidget {
-  const ViolationPage({super.key});
+  final ReportModel? initialData;
+
+  const ViolationPage({super.key, this.initialData});
 
   @override
   State<ViolationPage> createState() => _ViolationPageState();
@@ -35,6 +42,7 @@ class _ViolationPageState extends State<ViolationPage>
 
   int currentStep = 0;
   final int totalSteps = 4;
+  final uuid = const Uuid().v4();
 
   // Form controllers
   final _fullnameController = TextEditingController();
@@ -65,6 +73,16 @@ class _ViolationPageState extends State<ViolationPage>
     progressAnimation = Tween<double>(begin: 0.25, end: 0.25).animate(
       CurvedAnimation(parent: _progressController, curve: Curves.easeInOut),
     );
+
+    if (widget.initialData != null) {
+      _fullnameController.text = widget.initialData?.fullname ?? "";
+      _addressController.text = widget.initialData?.address ?? "";
+      _phoneController.text = widget.initialData?.phoneNumber ?? "";
+      _licenseController.text = widget.initialData?.licenseNumber ?? "";
+      _plateController.text = widget.initialData?.plateNumber ?? "";
+      //TODO: Set Photos, Set Violations
+    
+    }
   }
 
   @override
@@ -246,6 +264,115 @@ class _ViolationPageState extends State<ViolationPage>
     }
   }
 
+  Future<void> navigateBackToHome() async {
+    final homeBlocState = context.read<ViolationBloc>().state;
+    final uuid = const Uuid().v4(); // Generate a UUID for the new draft
+
+    var licenseUrl = "";
+    var plateUrl = "";
+    var evidenceUrl = "";
+    if (licensePhoto != null) {
+      licenseUrl = await saveImageToLocalStorage(
+        licensePhoto!,
+        "license-$uuid",
+      );
+    }
+    if (platePhoto != null) {
+      plateUrl = await saveImageToLocalStorage(platePhoto!, "plate-$uuid");
+    }
+    if (evidencePhoto != null) {
+      evidenceUrl = await saveImageToLocalStorage(
+        evidencePhoto!,
+        "evidence-$uuid",
+      );
+    }
+
+    if (homeBlocState is HomeLoaded) {
+      // Instantiate the ReportModel with the createdAt timestamp
+      final report = ReportModel(
+        fullname: _fullnameController.text,
+        address: _addressController.text,
+        phoneNumber: _phoneController.text,
+        licenseNumber: _licenseController.text,
+        licensePhoto: licenseUrl,
+        plateNumber: _plateController.text,
+        platePhoto: plateUrl,
+        evidencePhoto: evidenceUrl,
+        draftId: uuid,
+        violations: homeBlocState.violations.entries
+            .where((entry) => entry.value)
+            .map((entry) => entry.key)
+            .toList(),
+        createdAt: DateTime.now(), // Add the creation timestamp here
+      );
+
+      final hasData =
+          report.fullname.isNotEmpty ||
+          report.address.isNotEmpty ||
+          report.phoneNumber.isNotEmpty ||
+          report.licenseNumber.isNotEmpty ||
+          (report.licensePhoto.isNotEmpty) ||
+          (report.platePhoto.isNotEmpty) ||
+          (report.evidencePhoto.isNotEmpty) ||
+          report.violations.isNotEmpty;
+
+      if (hasData && widget.initialData == null) {
+        final prefs = await SharedPreferences.getInstance();
+        final allKeys = prefs.getKeys();
+        final draftKeys = allKeys
+            .where((key) => key.startsWith('draft_'))
+            .toList();
+
+        const int maxDrafts = 30;
+
+        // Remove the earliest draft if the limit is exceeded
+        if (draftKeys.length >= maxDrafts) {
+          // 1. Retrieve all existing drafts
+          final List<ReportModel> allDrafts = [];
+          for (var key in draftKeys) {
+            final reportJsonString = prefs.getString(key);
+            if (reportJsonString != null) {
+              final reportMap =
+                  jsonDecode(reportJsonString) as Map<String, dynamic>;
+              allDrafts.add(ReportModel.fromJson(reportMap));
+            }
+          }
+
+          // 2. Sort the drafts by their createdAt attribute
+          allDrafts.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+          if (allDrafts.isNotEmpty) {
+            final earliestDraft = allDrafts.first;
+            final earliestDraftJson = jsonEncode(earliestDraft.toJson());
+
+            // 3. Find the key of the earliest draft and delete it
+            final earliestDraftKey = draftKeys.firstWhere(
+              (key) => prefs.getString(key) == earliestDraftJson,
+              orElse: () => '',
+            );
+
+            if (earliestDraftKey.isNotEmpty) {
+              await prefs.remove(earliestDraftKey);
+              print('Draft limit exceeded. Removed earliest draft.');
+            }
+          }
+        }
+
+        // Save the new draft
+        final newDraftKey = 'draft_$uuid';
+        final reportJson = jsonEncode(report.toJson());
+        await prefs.setString(newDraftKey, reportJson);
+        print('Report draft saved with key: $newDraftKey');
+      }
+    }
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/home',
+      (Route<dynamic> route) => false,
+    );
+  }
+
   void _resetForm() {
     final homeBlocState = context.read<ViolationBloc>().state;
 
@@ -285,6 +412,7 @@ class _ViolationPageState extends State<ViolationPage>
                 totalSteps: totalSteps,
                 previousStep: previousStep,
                 progressAnimation: progressAnimation,
+                backHome: navigateBackToHome,
               ),
               Expanded(
                 child: PageView(

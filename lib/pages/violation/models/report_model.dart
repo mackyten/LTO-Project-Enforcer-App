@@ -13,6 +13,8 @@ class ReportModel {
   String? trackingNumber;
   String? createdById;
   List<String> violations;
+  DateTime? createdAt;
+  String? draftId;
 
   ReportModel({
     required this.fullname,
@@ -26,6 +28,8 @@ class ReportModel {
     this.createdById,
     required this.violations,
     required this.evidencePhoto,
+    this.createdAt,
+    this.draftId
   });
 
   factory ReportModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +45,10 @@ class ReportModel {
       trackingNumber: json['trackingNumber'] as String?,
       createdById: json['createdById'] as String?,
       violations: List<String>.from(json['violations'] as List),
+      draftId: json['draftId'] as String?,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime(0),
     );
   }
 
@@ -59,6 +67,7 @@ class ReportModel {
       'violations': violations,
       'createdById': createdById,
       'evidencePhoto': evidencePhoto,
+      'draftId': draftId,
       'trackingNumber': createAlphanumericTrackingNumber(),
       'createdAt': DateTime.now().toIso8601String(),
     };

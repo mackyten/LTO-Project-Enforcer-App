@@ -45,6 +45,11 @@ dependencies:
   cloudinary_url_gen: ^1.0.0
   cloudinary_flutter: ^1.0.0
   cloudinary_public: ^0.23.1
+  path_provider: ^2.0.1
+  shared_preferences: ^2.0.1
+  uuid: ^4.5.1
+  intl: ^0.17.0
+
 
 dev_dependencies:
   flutter_test:

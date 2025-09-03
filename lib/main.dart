@@ -3,6 +3,7 @@ import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/pages/home/index.dart';
 import 'package:enforcer_auto_fine/pages/violation/bloc/violation_bloc.dart';
 import 'package:enforcer_auto_fine/pages/violation/index.dart';
+import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,8 +41,19 @@ class MyApp extends StatelessWidget {
         ),
         routes: {
           '/': (context) => const Wrapper(),
-          'home': (context) => const HomePage(),
-          '/violations': (context) => const ViolationPage(),
+          '/home': (context) => const HomePage(),
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == '/violations') {
+            final initialData = settings.arguments as ReportModel?;
+            return MaterialPageRoute(
+              builder: (context) {
+                return ViolationPage(initialData: initialData);
+              },
+            );
+          }
+          // Handle other routes
+          return null;
         },
       ),
     );

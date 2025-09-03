@@ -4,6 +4,7 @@ class Header extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
   final VoidCallback previousStep;
+  final VoidCallback backHome;
   final Animation<double> progressAnimation;
 
   const Header({
@@ -11,7 +12,7 @@ class Header extends StatelessWidget {
     required this.currentStep,
     required this.totalSteps,
     required this.previousStep,
-    required this.progressAnimation,
+    required this.progressAnimation, required this.backHome,
   });
 
   @override
@@ -30,17 +31,15 @@ class Header extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: currentStep > 0 ? previousStep : null,
-                child: AnimatedOpacity(
-                  opacity: currentStep > 0 ? 1.0 : 0.0,
-                  duration: Duration(milliseconds: 300),
-                  child: Text(
-                    '← Back',
-                    style: TextStyle(
-                      color: Color(0xFF007AFF),
-                      fontSize: 17,
-                      fontWeight: FontWeight.w400,
-                    ),
+                onTap: currentStep > 0
+                    ? previousStep
+                    : backHome,
+                child: Text(
+                  '← Back',
+                  style: TextStyle(
+                    color: Color(0xFF007AFF),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
@@ -82,33 +81,10 @@ class Header extends StatelessWidget {
           ),
           SizedBox(height: 20),
           LinearProgressIndicator(
-            value: (currentStep +1) / totalSteps,
+            value: (currentStep + 1) / totalSteps,
             backgroundColor: Colors.white.withOpacity(0.2),
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
           ),
-          // AnimatedBuilder(
-          //   animation: progressAnimation,
-          //   builder: (context, child) {
-          //     return Container(
-          //       width: double.infinity,
-          //       height: 3,
-          //       decoration: BoxDecoration(
-          //         color: Colors.white.withOpacity(0.2),
-          //         borderRadius: BorderRadius.circular(2),
-          //       ),
-          //       child: FractionallySizedBox(
-          //         alignment: Alignment.centerLeft,
-          //         widthFactor: progressAnimation.value,
-          //         child: Container(
-          //           decoration: BoxDecoration(
-          //             color: Color(0xFF007AFF),
-          //             borderRadius: BorderRadius.circular(2),
-          //           ),
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // ),
         ],
       ),
     );
