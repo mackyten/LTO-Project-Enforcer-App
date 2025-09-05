@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Pendings extends StatefulWidget {
-  const Pendings({super.key});
+  final VoidCallback onLongPressed;
+  const Pendings({super.key, required this.onLongPressed});
 
   @override
   State<Pendings> createState() => _PendingsState();
