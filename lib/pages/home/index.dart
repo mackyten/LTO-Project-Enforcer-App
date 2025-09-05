@@ -30,9 +30,9 @@ class _HomePageState extends State<HomePage> {
           Navigator.pushNamed(context, '/violations');
         },
         style: ElevatedButton.styleFrom(
-          shape: CircleBorder(), 
+          shape: CircleBorder(),
           padding: EdgeInsets.all(12),
-          backgroundColor: Colors.blue, 
+          backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
         ),
         child: Icon(Icons.add), // The icon
@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
                           SizedBox(height: 20),
                           WeeklySummary(weekleySummary: state.weeklySummary),
                           SizedBox(height: 20),
-                          Pendings(),
+                          Pendings(onLongPressed: onLongPressed),
                         ],
                       ),
                     ),
@@ -85,6 +85,19 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
+    );
+  }
+
+  void onLongPressed() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 200,
+          color: Colors.white,
+          child: const Center(child: Text('This is a Bottom Modal Sheet!')),
+        );
+      },
     );
   }
 }

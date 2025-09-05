@@ -7,10 +7,12 @@ import 'package:enforcer_auto_fine/pages/violation/components/violation_item.dar
 import 'package:enforcer_auto_fine/pages/violation/handlers.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
+import 'package:enforcer_auto_fine/shared/components/loading_overlay/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/index.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
+import 'package:enforcer_auto_fine/utils/shared_preferences.dart';
 import 'package:enforcer_auto_fine/utils/local_file_saver.dart';
 import 'package:enforcer_auto_fine/utils/tracking_no_generator.dart';
 import 'package:flutter/cupertino.dart';
@@ -62,6 +64,9 @@ class _ViolationPageState extends State<ViolationPage>
 
   final ImagePicker _picker = ImagePicker();
 
+  //Local State
+  bool isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -80,8 +85,27 @@ class _ViolationPageState extends State<ViolationPage>
       _phoneController.text = widget.initialData?.phoneNumber ?? "";
       _licenseController.text = widget.initialData?.licenseNumber ?? "";
       _plateController.text = widget.initialData?.plateNumber ?? "";
-      //TODO: Set Photos, Set Violations
-    
+
+      if (widget.initialData?.licensePhoto != null) {
+        licensePhoto = File(widget.initialData!.licensePhoto);
+      }
+      if (widget.initialData?.platePhoto != null) {
+        platePhoto = File(widget.initialData!.platePhoto);
+      }
+      if (widget.initialData?.evidencePhoto != null) {
+        evidencePhoto = File(widget.initialData!.evidencePhoto);
+      }
+
+      if (widget.initialData?.violations != null) {
+        widget.initialData!.violations.forEach(
+          (item) => context.read<ViolationBloc>().add(
+            UpdateViolationEvent(
+              key: item,
+              value: widget.initialData!.violations.contains(item),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -192,6 +216,9 @@ class _ViolationPageState extends State<ViolationPage>
   }
 
   Future<void> submitForm(BuildContext context) async {
+    setState(() {
+      isSaving = true;
+    });
     final homeBlocState = context.read<ViolationBloc>().state;
     if (homeBlocState is! HomeLoaded) {
       showAlert(
@@ -199,9 +226,13 @@ class _ViolationPageState extends State<ViolationPage>
         'Error',
         'Home data not loaded. Please try again later.',
       );
+      setState(() {
+        isSaving = false;
+      });
       return;
     }
-    if (_validateCurrentStep(context)) {
+    bool isValid = _validateCurrentStep(context);
+    if (isValid) {
       HapticFeedback.mediumImpact();
       var licenseUrl = "";
       var plateUrl = "";
@@ -240,28 +271,25 @@ class _ViolationPageState extends State<ViolationPage>
       var result = await handleSave(data);
       if (!result) {
         showAlert(context, 'Error', 'Failed to save report. Please try again.');
+        setState(() {
+          isSaving = false;
+        });
         return;
       }
 
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: Text('✅ Success'),
-          content: Text(
-            'Report submitted successfully!\n\nThank you for helping keep our community safe.',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.pop(context);
-                _resetForm();
-              },
-            ),
-          ],
-        ),
-      );
+      if (widget.initialData != null && widget.initialData?.draftId != null) {
+        final draftKey = 'draft_${widget.initialData!.draftId!}';
+        deletePreference(draftKey);
+      }
+
+      setState(() {
+        isSaving = false;
+      });
     }
+
+    setState(() {
+      isSaving = false;
+    });
   }
 
   Future<void> navigateBackToHome() async {
@@ -271,16 +299,22 @@ class _ViolationPageState extends State<ViolationPage>
     var licenseUrl = "";
     var plateUrl = "";
     var evidenceUrl = "";
-    if (licensePhoto != null) {
+    if (licensePhoto != null &&
+        licensePhoto?.path != null &&
+        licensePhoto?.path != '') {
       licenseUrl = await saveImageToLocalStorage(
         licensePhoto!,
         "license-$uuid",
       );
     }
-    if (platePhoto != null) {
+    if (platePhoto != null &&
+        platePhoto?.path != '' &&
+        platePhoto?.path != null) {
       plateUrl = await saveImageToLocalStorage(platePhoto!, "plate-$uuid");
     }
-    if (evidencePhoto != null) {
+    if (evidencePhoto != null &&
+        evidencePhoto?.path != '' &&
+        evidencePhoto?.path != null) {
       evidenceUrl = await saveImageToLocalStorage(
         evidencePhoto!,
         "evidence-$uuid",
@@ -316,7 +350,10 @@ class _ViolationPageState extends State<ViolationPage>
           (report.evidencePhoto.isNotEmpty) ||
           report.violations.isNotEmpty;
 
-      if (hasData && widget.initialData == null) {
+      if (hasData) {
+        if (widget.initialData != null) {
+          deletePreference("draft_${widget.initialData!.draftId}");
+        }
         final prefs = await SharedPreferences.getInstance();
         final allKeys = prefs.getKeys();
         final draftKeys = allKeys
@@ -402,40 +439,67 @@ class _ViolationPageState extends State<ViolationPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: appBg,
-        child: SafeArea(
-          child: Column(
-            children: [
-              Header(
-                currentStep: currentStep,
-                totalSteps: totalSteps,
-                previousStep: previousStep,
-                progressAnimation: progressAnimation,
-                backHome: navigateBackToHome,
+      body: Stack(
+        children: [
+          Container(
+            decoration: appBg,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Header(
+                    currentStep: currentStep,
+                    totalSteps: totalSteps,
+                    previousStep: previousStep,
+                    progressAnimation: progressAnimation,
+                    backHome: navigateBackToHome,
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildStep1(),
+                        _buildStep2(),
+                        _buildStep3(),
+                        _buildStep4(),
+                      ],
+                    ),
+                  ),
+                  Navigation(
+                    currentStep: currentStep,
+                    totalSteps: totalSteps,
+                    previousStep: previousStep,
+                    submitForm: () => submitForm(context).then(
+                      (e) => {
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (context) => CupertinoAlertDialog(
+                            title: Text('✅ Success'),
+                            content: Text(
+                              'Report submitted successfully!\n\nThank you for helping keep our community safe.',
+                            ),
+                            actions: [
+                              CupertinoDialogAction(
+                                child: Text('OK'),
+                                onPressed: () {
+                                  _resetForm();
+                                  if (mounted) Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      },
+                    ),
+                    nextStep: () => nextStep(context),
+                  ),
+                ],
               ),
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  physics: NeverScrollableScrollPhysics(),
-                  children: [
-                    _buildStep1(),
-                    _buildStep2(),
-                    _buildStep3(),
-                    _buildStep4(),
-                  ],
-                ),
-              ),
-              Navigation(
-                currentStep: currentStep,
-                totalSteps: totalSteps,
-                previousStep: previousStep,
-                submitForm: () => submitForm(context),
-                nextStep: () => nextStep(context),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          if (isSaving) LoadingOverlay(),
+        ],
       ),
     );
   }
