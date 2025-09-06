@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Pendings extends StatefulWidget {
-  final VoidCallback onLongPressed;
+  final void Function(ReportModel) onLongPressed;
   const Pendings({super.key, required this.onLongPressed});
 
   @override
@@ -62,6 +62,7 @@ class _PendingsState extends State<Pendings> {
                             var item = draft.value;
 
                             return ListTile(
+                              onLongPress: () => widget.onLongPressed(item),
                               onTap: () {
                                 Navigator.pushNamed(
                                   context,
