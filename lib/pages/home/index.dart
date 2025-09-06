@@ -1,6 +1,13 @@
+import 'dart:ui';
+
 import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/pages/home/components/pendings.dart';
 import 'package:enforcer_auto_fine/pages/home/components/weekly_summary.dart';
+import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
+import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
+import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
+import 'package:enforcer_auto_fine/shared/components/app_bar/index.dart';
+import 'package:enforcer_auto_fine/shared/components/side_drawer/index.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +32,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: GlassmorphismAppBar(),
+      drawer: AppMainSideDrawer(),
       floatingActionButton: ElevatedButton(
         onPressed: () {
           Navigator.pushNamed(context, '/violations');
@@ -57,25 +67,24 @@ class _HomePageState extends State<HomePage> {
                   // Dispatch the event to reload the data.
                   context.read<HomeBloc>().add(FetchHomeData());
                 },
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Greetings(
-                            firstName: state.enforcerData.firstName,
-                            profilePictureUrl:
-                                state.enforcerData.profilePictureUrl,
-                          ),
-                          SizedBox(height: 20),
-                          WeeklySummary(weekleySummary: state.weeklySummary),
-                          SizedBox(height: 20),
-                          Pendings(onLongPressed: onLongPressed),
-                        ],
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SafeArea(child: Container()),
+                        Greetings(
+                          firstName: state.enforcerData.firstName,
+                          profilePictureUrl:
+                              state.enforcerData.profilePictureUrl,
+                        ),
+                        SizedBox(height: 20),
+                        WeeklySummary(weekleySummary: state.weeklySummary),
+                        SizedBox(height: 20),
+                        Pendings(onLongPressed: onLongPressed),
+                      ],
                     ),
                   ),
                 ),
@@ -88,14 +97,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void onLongPressed() {
+  void onLongPressed(ReportModel report) {
     showModalBottomSheet(
+      showDragHandle: true,
+      useSafeArea: true,
       context: context,
       builder: (BuildContext context) {
-        return Container(
-          height: 200,
-          color: Colors.white,
-          child: const Center(child: Text('This is a Bottom Modal Sheet!')),
+        return IntrinsicHeight(
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: [
+                Text(
+                  "Are you sure want to delete?",
+                  style: TextStyle(
+                    fontSize: FontSizes().h4,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: MainColor().error, // Change the color here
+                  ),
+                  onPressed: () {},
+                  icon: const Icon(Icons.delete),
+                  label: const Text('Delete'),
+                  iconAlignment: IconAlignment.start,
+                ),
+
+                Divider(),
+
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor:
+                        MainColor().primary, // Change the color here
+                  ),
+                  icon: Icon(Icons.arrow_back),
+                  onPressed: () => Navigator.pop(context),
+                  label: const Text('Cancel'),
+                  iconAlignment: IconAlignment.start,
+                ),
+                Divider(color: Colors.transparent),
+              ],
+            ),
+          ),
         );
       },
     );
