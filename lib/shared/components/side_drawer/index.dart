@@ -2,7 +2,6 @@ import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/shared/components/side_drawer/items.dart';
-import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

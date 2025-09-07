@@ -238,19 +238,13 @@ class _ViolationPageState extends State<ViolationPage>
       var plateUrl = "";
       var evidenceUrl = "";
       if (licensePhoto != null) {
-        licenseUrl = await uploadPhoto(
-          licensePhoto!,
-          StorageFolders.licensePhotos,
-        );
+        licenseUrl = await CloudinaryService.uploadPhoto(licensePhoto!);
       }
       if (platePhoto != null) {
-        plateUrl = await uploadPhoto(platePhoto!, StorageFolders.platePhotos);
+        plateUrl = await CloudinaryService.uploadPhoto(platePhoto!);
       }
       if (evidencePhoto != null) {
-        evidenceUrl = await uploadPhoto(
-          evidencePhoto!,
-          StorageFolders.evidencePhotos,
-        );
+        evidenceUrl = await CloudinaryService.uploadPhoto(evidencePhoto!);
       }
 
       final data = ReportModel(

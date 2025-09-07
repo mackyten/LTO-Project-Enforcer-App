@@ -7,6 +7,11 @@ class EnforcerModel {
   String? mobileNumber;
   String? badgePhoto;
 
+  //temp
+  String? tempProfilePicture;
+  String? tempBadgePhoto;
+  String? tempPassword;
+
   EnforcerModel({
     required this.firstName,
     required this.lastName,
@@ -15,6 +20,9 @@ class EnforcerModel {
     this.mobileNumber = '',
     this.profilePictureUrl = '',
     this.badgePhoto = '',
+    this.tempBadgePhoto,
+    this.tempProfilePicture,
+    this.tempPassword
   });
 
   Map<String, dynamic> toJson() {
@@ -28,6 +36,18 @@ class EnforcerModel {
       'badgePhoto': badgePhoto
     };
   }
+
+    Map<String, dynamic> toUpdateJson() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'profilePictureUrl': profilePictureUrl,
+      'email': email,
+      'mobileNumber': mobileNumber,
+      'badgePhoto': badgePhoto
+    };
+  }
+
 
   factory EnforcerModel.fromJson(Map<String, dynamic> json) {
     return EnforcerModel(

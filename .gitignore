@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# .gitignore
+# Environment files
+.env
+.env.production
+.env.local
+.env.*.local
+
+# API Keys
+**/apikeys.dart
+**/secrets.dart
+**/config/keys.dart

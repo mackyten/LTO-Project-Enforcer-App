@@ -38,3 +38,23 @@ void signInWithEmailAndPassword(String email, String password) async {
     print('An error occurred while signing in: $e');
   }
 }
+
+Future<bool> reauthenticateUser(String email, String password) async {
+  // ... your reauthentication logic from the previous answer
+  // This function should return true on success, and false on failure or throw an exception.
+  final user = FirebaseAuth.instance.currentUser;
+  try {
+    if (user != null) {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+      return true; // Reauth successful
+    }
+    return false;
+  } catch (e) {
+    print("Reauthentication failed: $e");
+    return false; // Reauth failed
+  }
+}
