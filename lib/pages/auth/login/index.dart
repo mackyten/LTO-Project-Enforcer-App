@@ -17,7 +17,7 @@ class LoginPage extends StatelessWidget {
                   style: TextStyle(fontSize: 24),
                 ),
                 ElevatedButton(onPressed: (){
-                  signInWithEmailAndPassword("testuser@mailinator.com", "password123");
+                  signInWithEmailAndPassword("test_user@mailinator.com", "password123");
                 }, child: Text("Login"))
               ],
             ),

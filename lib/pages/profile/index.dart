@@ -1,14 +1,23 @@
+import 'dart:io';
+import 'package:enforcer_auto_fine/pages/auth/handlers.dart';
 import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
+import 'package:enforcer_auto_fine/pages/profile/handlers.dart';
 import 'package:enforcer_auto_fine/shared/api/enforcer_id_type.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/shared/components/app_bar/index.dart';
+import 'package:enforcer_auto_fine/shared/components/loading_overlay/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/app_input_border.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
+import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_id_type_model.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
+import 'package:enforcer_auto_fine/utils/file_uploader.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -18,11 +27,50 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  final currentUser = FirebaseAuth.instance.currentUser;
+
   bool isEditMode = false;
+  bool isSaving = false;
+  bool obscureReauthPassword = false;
+  final _emailController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _mobileNumberController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _reauthPasswordController = TextEditingController();
+  String? _selectedIdType;
+  File? badgePhoto;
+  File? userProfilePic;
+
+  final ImagePicker _picker = ImagePicker();
+
+  final snackBar = SnackBar(
+    content: const Text('Saved Successfully!'),
+    backgroundColor: MainColor().success,
+  );
+
+  @override
   void initState() {
     super.initState();
     // Dispatch the event to start fetching data
     context.read<HomeBloc>().add(FetchHomeData());
+    final homeBlocState = context.read<HomeBloc>().state;
+    if (homeBlocState is HomeLoaded) {
+      var user = homeBlocState.enforcerData;
+      _emailController.text = user.email;
+      _lastNameController.text = user.lastName;
+      _firstNameController.text = user.firstName;
+      _mobileNumberController.text = user.mobileNumber ?? "";
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _lastNameController.dispose();
+    _firstNameController.dispose();
+    _mobileNumberController.dispose();
+    super.dispose();
   }
 
   void _setEdit() {
@@ -31,229 +79,288 @@ class _ProfileState extends State<Profile> {
     });
   }
 
-  String? _selectedIdType;
+  void _setSaving() {
+    setState(() {
+      isSaving = !isSaving;
+    });
+  }
+
+  void _setReauthPasswordObscure() {
+    setState(() {
+      obscureReauthPassword = !obscureReauthPassword;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: GlassmorphismAppBar(
-        title: Text(isEditMode ? 'Edit Profile' : 'Profile'),
-        leading: isEditMode
-            ? null
-            : IconButton(
-                onPressed: () => {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/home',
-                    (Route<dynamic> route) => false,
-                  ),
-                },
-                icon: Icon(Icons.arrow_back),
-              ),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: MainColor().textPrimary,
-            ),
-            onPressed: _setEdit,
-            child: Text(isEditMode ? 'Save' : 'Edit'),
-          ),
-        ],
-      ),
-      body: BlocBuilder<HomeBloc, HomeState>(
-        builder: (context, state) {
-          if (state is HomeInitial || state is HomeLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is HomeError) {
-            return Center(child: Text('Error: ${state.message}'));
-          }
-          if (state is HomeLoaded) {
-            var user = state.enforcerData;
-            return Container(
-              decoration: appBg,
-              height: double.infinity,
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(48, 16, 48, 0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SafeArea(child: SizedBox()),
-                    Stack(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.all(8),
-                          child: CircleAvatar(
-                            radius: 80,
-                            backgroundImage: user.profilePictureUrl.isNotEmpty
-                                ? NetworkImage(user.profilePictureUrl)
-                                : null,
-                            child: user.profilePictureUrl.isEmpty
-                                ? Icon(Icons.account_circle, size: 50)
-                                : null,
-                          ),
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state is HomeInitial || state is HomeLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is HomeError) {
+          return Center(child: Text('Error: ${state.message}'));
+        }
+        if (state is HomeLoaded) {
+          var user = state.enforcerData;
+
+          return Stack(
+            children: [
+              Scaffold(
+                extendBodyBehindAppBar: true,
+                appBar: GlassmorphismAppBar(
+                  title: Text(isEditMode ? 'Edit Profile' : 'Profile'),
+                  leading: isEditMode
+                      ? null
+                      : IconButton(
+                          onPressed: () => {
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/home',
+                              (Route<dynamic> route) => false,
+                            ),
+                          },
+                          icon: Icon(Icons.arrow_back),
                         ),
-                        if (isEditMode)
-                          Positioned(
-                            right: 0,
-                            child: FilledButton.icon(
-                              onPressed: () {},
-                              label: Icon(Icons.camera_alt),
-                              style: FilledButton.styleFrom(
-                                shape: const CircleBorder(),
-                                backgroundColor: Colors
-                                    .blue, // Sets the background color of the circle
-                                foregroundColor: Colors
-                                    .white, // Sets the color of the icon and label
-                              ),
-                            ),
-                          ),
-                      ],
+                  actions: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: MainColor().textPrimary,
+                      ),
+                      onPressed: () {
+                        if (isEditMode) {
+                          _updateData(user.uuid);
+                        } else {
+                          _setEdit();
+                        }
+                      },
+                      child: Text(isEditMode ? 'Save' : 'Edit'),
                     ),
-
-                    Form(
-                      child: Column(
-                        children: [
-                          SizedBox(height: 32),
-                          _buildTextField(
-                            initialValue: user.email,
-                            label: 'Email',
-                          ),
-                          SizedBox(height: 24),
-                          _buildTextField(
-                            initialValue: user.lastName,
-                            label: 'Lastname',
-                          ),
-                          SizedBox(height: 24),
-                          _buildTextField(
-                            initialValue: user.firstName,
-                            label: 'Firstname',
-                          ),
-
-                          SizedBox(height: 24),
-                          _buildTextField(
-                            initialValue: user.mobileNumber,
-                            label: 'Mobile Number',
-                          ),
-
-                          SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: Text(
-                              "ID / Badge Photo",
-                              style: TextStyle(
-                                color: MainColor().textPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: FontSizes().h4,
-                              ),
-                              textAlign: TextAlign.start,
-                            ),
-                          ),
-
-                          SizedBox(height: 24),
-                          _buildIdTypeDropdown('Select Type'),
-
-                          SizedBox(height: 24),
-                          ClipRRect(
-                            borderRadius: BorderRadiusGeometry.circular(10),
-                            child: Stack(
+                  ],
+                ),
+                body: BlocBuilder<HomeBloc, HomeState>(
+                  builder: (context, state) {
+                    return Container(
+                      decoration: appBg,
+                      height: double.infinity,
+                      width: double.infinity,
+                      padding: EdgeInsets.fromLTRB(48, 16, 48, 0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SafeArea(child: SizedBox()),
+                            Stack(
                               children: [
                                 Container(
-                                  width: double.infinity,
-                                  height: size.width * .60,
-
-                                  child:
-                                      (user.badgePhoto == null ||
-                                          user.badgePhoto!.isEmpty)
-                                      ? Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.white12,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              'No photo',
-                                              style: TextStyle(
-                                                color: isEditMode
-                                                    ? Colors.transparent
-                                                    : MainColor().textPrimary,
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      : Image.network(
-                                          user.badgePhoto!,
-
-                                          fit: BoxFit.cover,
-
-                                          loadingBuilder:
-                                              (
-                                                BuildContext context,
-                                                Widget child,
-                                                ImageChunkEvent?
-                                                loadingProgress,
-                                              ) {
-                                                if (loadingProgress == null) {
-                                                  return child;
-                                                }
-                                                return Center(
-                                                  child: CircularProgressIndicator(
-                                                    value:
-                                                        loadingProgress
-                                                                .expectedTotalBytes !=
-                                                            null
-                                                        ? loadingProgress
-                                                                  .cumulativeBytesLoaded /
-                                                              loadingProgress
-                                                                  .expectedTotalBytes!
-                                                        : null,
-                                                  ),
-                                                );
-                                              },
-                                        ),
+                                  margin: EdgeInsets.all(8),
+                                  child: CircleAvatar(
+                                    radius: 80,
+                                    backgroundImage: userProfilePic != null
+                                        ? FileImage(userProfilePic!)
+                                        : user.profilePictureUrl.isNotEmpty
+                                        ? NetworkImage(user.profilePictureUrl)
+                                        : null,
+                                    child: user.profilePictureUrl.isEmpty
+                                        ? Icon(Icons.account_circle, size: 50)
+                                        : null,
+                                  ),
                                 ),
                                 if (isEditMode)
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.black54,
-                                    ),
-                                    width: double.infinity,
-                                    height: size.width * .60,
-                                    child: Center(
-                                      child: Text(
-                                        "Tap to update photo",
-                                        style: TextStyle(
-                                          color: MainColor().textPrimary,
-                                        ),
+                                  Positioned(
+                                    right: 0,
+                                    child: FilledButton.icon(
+                                      onPressed: () => _pickImage('user-photo'),
+                                      label: Icon(Icons.camera_alt),
+                                      style: FilledButton.styleFrom(
+                                        shape: const CircleBorder(),
+                                        backgroundColor: Colors
+                                            .blue, // Sets the background color of the circle
+                                        foregroundColor: Colors
+                                            .white, // Sets the color of the icon and label
                                       ),
                                     ),
                                   ),
                               ],
                             ),
-                          ),
-                        ],
+
+                            Form(
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 32),
+                                  _buildTextField(
+                                    controller: _emailController,
+                                    label: 'Email',
+                                  ),
+                                  SizedBox(height: 24),
+                                  _buildTextField(
+                                    controller: _lastNameController,
+                                    label: 'Lastname',
+                                  ),
+                                  SizedBox(height: 24),
+                                  _buildTextField(
+                                    controller: _firstNameController,
+                                    label: 'Firstname',
+                                  ),
+
+                                  SizedBox(height: 24),
+                                  _buildTextField(
+                                    controller: _mobileNumberController,
+                                    label: 'Mobile Number',
+                                  ),
+
+                                  SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: Text(
+                                      "ID / Badge Photo",
+                                      style: TextStyle(
+                                        color: MainColor().textPrimary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: FontSizes().h4,
+                                      ),
+                                      textAlign: TextAlign.start,
+                                    ),
+                                  ),
+
+                                  SizedBox(height: 24),
+                                  _buildIdTypeDropdown('Select Type'),
+
+                                  SizedBox(height: 24),
+                                  ClipRRect(
+                                    borderRadius: BorderRadiusGeometry.circular(
+                                      10,
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: size.width * .60,
+                                          child: badgePhoto != null
+                                              ? Image.file(
+                                                  badgePhoto!,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : (user.badgePhoto == null ||
+                                                    user.badgePhoto!.isEmpty)
+                                              ? Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white12,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      'No photo',
+                                                      style: TextStyle(
+                                                        color: isEditMode
+                                                            ? Colors.transparent
+                                                            : MainColor()
+                                                                  .textPrimary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              : Image.network(
+                                                  user.badgePhoto!,
+                                                  fit: BoxFit.cover,
+                                                  loadingBuilder:
+                                                      (
+                                                        BuildContext context,
+                                                        Widget child,
+                                                        ImageChunkEvent?
+                                                        loadingProgress,
+                                                      ) {
+                                                        if (loadingProgress ==
+                                                            null) {
+                                                          return child;
+                                                        }
+                                                        return Center(
+                                                          child: CircularProgressIndicator(
+                                                            value:
+                                                                loadingProgress
+                                                                        .expectedTotalBytes !=
+                                                                    null
+                                                                ? loadingProgress
+                                                                          .cumulativeBytesLoaded /
+                                                                      loadingProgress
+                                                                          .expectedTotalBytes!
+                                                                : null,
+                                                          ),
+                                                        );
+                                                      },
+                                                ),
+                                        ),
+                                        if (isEditMode)
+                                          GestureDetector(
+                                            onTap: () =>
+                                                _pickImage('badge-photo'),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black54,
+                                              ),
+                                              width: double.infinity,
+                                              height: size.width * .60,
+                                              child: Center(
+                                                child: Text(
+                                                  "Tap to update photo",
+                                                  style: TextStyle(
+                                                    color:
+                                                        MainColor().textPrimary,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SafeArea(child: SizedBox()),
+                          ],
+                        ),
                       ),
-                    ),
-                    SafeArea(child: SizedBox()),
-                  ],
+                    );
+                  },
                 ),
               ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+              if (isSaving) LoadingOverlay(),
+            ],
+          );
+        }
+        return SizedBox.shrink();
+      },
     );
   }
 
-  _buildTextField({String? initialValue, String? label}) {
+  Future<void> _pickImage(String type) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        setState(() {
+          if (type == "user-photo") {
+            userProfilePic = File(image.path);
+          } else if (type == "badge-photo") {
+            badgePhoto = File(image.path);
+          }
+        });
+        HapticFeedback.lightImpact();
+      }
+    } catch (e) {
+      showAlert(context, 'Reqiured', 'Failed to pick image. Please try again.');
+    }
+  }
+
+  _buildTextField({required TextEditingController controller, String? label}) {
     return TextFormField(
+      controller: controller,
       readOnly: !isEditMode,
-      initialValue: initialValue,
       style: TextStyle(color: MainColor().textPrimary),
       decoration: isEditMode
           ? appInputDecoration(label)
@@ -279,7 +386,7 @@ class _ProfileState extends State<Profile> {
           final idTypes = snapshot.data!;
 
           if (_selectedIdType == null && idTypes.isNotEmpty) {
-            _selectedIdType = idTypes.first.id;
+            _selectedIdType = null;
           }
 
           return DropdownButtonFormField<String>(
@@ -306,13 +413,10 @@ class _ProfileState extends State<Profile> {
               return DropdownMenuItem<String>(
                 value: item.id,
                 child: Text(
-                  
                   softWrap: true,
                   item.type,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: MainColor().textPrimary
-                  ),
+                  style: TextStyle(color: MainColor().textPrimary),
                 ),
               );
             }).toList(),
@@ -321,5 +425,139 @@ class _ProfileState extends State<Profile> {
         }
       },
     );
+  }
+
+  _updateData(String uuid) async {
+    if (currentUser != null && currentUser!.email != _emailController.text) {
+      // Intercept the save process and request re-authentication.
+      bool? reauthenticated = await onPasswordVerify();
+      if (reauthenticated == false) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Email update cancelled. Reauthentication failed."),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return; // Exit the function if reauthentication fails.
+      }
+    }
+    _setSaving();
+    var updatedUserData = new EnforcerModel(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      uuid: uuid,
+      email: _emailController.text,
+      mobileNumber: _mobileNumberController.text,
+    );
+
+    if (badgePhoto != null) {
+      updatedUserData.tempBadgePhoto = await CloudinaryService.uploadPhoto(
+        badgePhoto!,
+      );
+    }
+    if (userProfilePic != null) {
+      updatedUserData.tempProfilePicture = await CloudinaryService.uploadPhoto(
+        userProfilePic!,
+      );
+    }
+    await handleSaveData(updatedUserData);
+    _setEdit();
+    _setSaving();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  Future<bool?> onPasswordVerify() async {
+    String? password = await showModalBottomSheet<String>(
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
+        // Use StatefulBuilder to manage local state within the modal
+        return StatefulBuilder(
+          builder: (BuildContext innerContext, StateSetter innerSetState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: keyboardHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      children: [
+                        Text(
+                          "For security reasons, we need to confirm it’s really you before updating your email address. Please enter your current password to continue.",
+                          style: TextStyle(
+                            fontSize: FontSizes().h4,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextField(
+                          obscureText:
+                              obscureReauthPassword, // This variable is from the parent state
+                          canRequestFocus: true,
+                          controller: _reauthPasswordController,
+                          decoration: InputDecoration(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureReauthPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                // Call the local setState from StatefulBuilder
+                                innerSetState(() {
+                                  obscureReauthPassword =
+                                      !obscureReauthPassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                ).pop(_reauthPasswordController.text);
+                              },
+                              child: const Text('Continue'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (password != null && password.isNotEmpty) {
+      final bool reauthenticated = await reauthenticateUser(
+        currentUser!.email!,
+        password,
+      );
+      return reauthenticated;
+    }
+
+    return false;
   }
 }

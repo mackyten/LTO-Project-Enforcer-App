@@ -9,6 +9,10 @@ extension StorageFoldersExtension on StorageFolders {
         return 'LICENSE_PHOTOS';
       case StorageFolders.platePhotos:
         return 'PLATE_PHOTOS';
+      case StorageFolders.profilePictures:
+        return 'PROFILE_PICTURES';
+      case StorageFolders.badgePhotos:
+        return 'BADGE_PHOTOS';
     }
   }
 }
