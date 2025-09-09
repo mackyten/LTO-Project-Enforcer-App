@@ -1,3 +1,4 @@
+import 'package:enforcer_auto_fine/pages/auth/handlers.dart';
 import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
@@ -5,8 +6,15 @@ import 'package:enforcer_auto_fine/shared/components/side_drawer/items.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class AppMainSideDrawer extends StatelessWidget {
+class AppMainSideDrawer extends StatefulWidget {
   const AppMainSideDrawer({super.key});
+
+  @override
+  State<AppMainSideDrawer> createState() => _AppMainSideDrawerState();
+}
+
+class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
+  bool isLoggingOut = false;
 
   @override
   Widget build(BuildContext context) {
@@ -90,9 +98,49 @@ class AppMainSideDrawer extends StatelessWidget {
                 ListTile(
                   textColor: MainColor().textPrimary,
                   iconColor: MainColor().textPrimary,
-                  leading: Icon(Icons.logout),
+                  leading: isLoggingOut
+                      ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: MainColor()
+                                .textPrimary, // Optional: customize the color
+                          ),
+                      )
+                      : Icon(Icons.logout),
                   title: Text("Logout"),
-                  onTap: () => {},
+                  onTap: () async {
+                    // Check if we are already logging out to prevent multiple taps
+                    if (isLoggingOut) return;
+
+                    // Set the state to true to show the loading indicator
+                    setState(() {
+                      isLoggingOut = true;
+                    });
+
+                    try {
+                      // Wait for the sign out operation to complete
+                      await signOut();
+
+                      // If sign out is successful, navigate to the login/landing page
+                      // if (mounted) {
+                      //   Navigator.of(context).pushNamedAndRemoveUntil(
+                      //     '/auth', // Or your desired initial route
+                      //     (Route<dynamic> route) => false,
+                      //   );
+                      // }
+                    } catch (e) {
+                      // Handle potential errors during sign out (e.g., network issues)
+                      print("Sign out failed: $e");
+                    } finally {
+                      // This block will always execute, regardless of success or failure
+                      if (mounted) {
+                        setState(() {
+                          isLoggingOut = false;
+                        });
+                      }
+                    }
+                  },
                 ),
                 SafeArea(child: SizedBox()),
               ],
