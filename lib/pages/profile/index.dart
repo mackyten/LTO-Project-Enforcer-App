@@ -32,11 +32,18 @@ class _ProfileState extends State<Profile> {
   bool isEditMode = false;
   bool isSaving = false;
   bool obscureReauthPassword = false;
+  bool obscureCurrentPassword = false;
+  bool obscureNewPassword = false;
+  bool obscureConfirmPassword = false;
+
   final _emailController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _mobileNumberController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
   final _reauthPasswordController = TextEditingController();
   String? _selectedIdType;
   File? badgePhoto;
@@ -192,22 +199,26 @@ class _ProfileState extends State<Profile> {
                                 children: [
                                   SizedBox(height: 32),
                                   _buildTextField(
+                                    readOnly: true,
                                     controller: _emailController,
                                     label: 'Email',
                                   ),
                                   SizedBox(height: 24),
                                   _buildTextField(
+                                    readOnly: false,
                                     controller: _lastNameController,
                                     label: 'Lastname',
                                   ),
                                   SizedBox(height: 24),
                                   _buildTextField(
+                                    readOnly: false,
                                     controller: _firstNameController,
                                     label: 'Firstname',
                                   ),
 
                                   SizedBox(height: 24),
                                   _buildTextField(
+                                    readOnly: false,
                                     controller: _mobileNumberController,
                                     label: 'Mobile Number',
                                   ),
@@ -316,6 +327,21 @@ class _ProfileState extends State<Profile> {
                                       ],
                                     ),
                                   ),
+
+                                  SizedBox(height: 16),
+
+                                  Card(
+                                    color: Colors
+                                        .blue, // Change this to your desired color
+                                    child: ListTile(
+                                      onTap: _showChangePasswordBottomSheet,
+                                      textColor: MainColor().textPrimary,
+                                      iconColor: MainColor().textPrimary,
+                                      leading: Icon(Icons.lock),
+                                      title: Text("Update Password"),
+                                      trailing: Icon(Icons.arrow_forward_ios),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -357,10 +383,14 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  _buildTextField({required TextEditingController controller, String? label}) {
+  _buildTextField({
+    required TextEditingController controller,
+    required bool readOnly,
+    String? label,
+  }) {
     return TextFormField(
       controller: controller,
-      readOnly: !isEditMode,
+      readOnly: readOnly ? readOnly : !isEditMode,
       style: TextStyle(color: MainColor().textPrimary),
       decoration: isEditMode
           ? appInputDecoration(label)
@@ -520,22 +550,32 @@ class _ProfileState extends State<Profile> {
                             ),
                           ),
                         ),
+                        SizedBox(height: 16),
+                        Divider(),
+                        SizedBox(height: 16),
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
                           children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text('Cancel'),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Cancel'),
+                              ),
                             ),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(
-                                  context,
-                                ).pop(_reauthPasswordController.text);
-                              },
-                              child: const Text('Continue'),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pop(_reauthPasswordController.text);
+                                },
+                                child: const Text('Continue'),
+                              ),
                             ),
                           ],
                         ),
@@ -559,5 +599,197 @@ class _ProfileState extends State<Profile> {
     }
 
     return false;
+  }
+
+  _showChangePasswordBottomSheet() async {
+    showModalBottomSheet(
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+        String error = '';
+        final isValid =
+            (_newPasswordController.text == _confirmPasswordController.text) &&
+            _currentPasswordController.text.isNotEmpty &&
+            _newPasswordController.text.isNotEmpty &&
+            _confirmPasswordController.text.isNotEmpty;
+        return StatefulBuilder(
+          builder: (BuildContext innerContext, StateSetter innerSetState) {
+            return Padding(
+              padding: EdgeInsets.only(bottom: keyboardHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Reset Password",
+                          style: TextStyle(
+                            fontSize: FontSizes().h4,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        TextField(
+                          autocorrect: false,
+                          autofillHints: [],
+                          obscureText:
+                              obscureCurrentPassword, // This variable is from the parent state
+                          canRequestFocus: true,
+                          controller: _currentPasswordController,
+                          decoration: InputDecoration(
+                            label: Text("Current Password"),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureCurrentPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                // Call the local setState from StatefulBuilder
+                                innerSetState(() {
+                                  obscureCurrentPassword =
+                                      !obscureCurrentPassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        TextField(
+                          autocorrect: false,
+                          autofillHints: [],
+                          obscureText:
+                              obscureNewPassword, // This variable is from the parent state
+                          canRequestFocus: true,
+                          controller: _newPasswordController,
+                          decoration: InputDecoration(
+                            label: Text("New Password"),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureNewPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                // Call the local setState from StatefulBuilder
+                                innerSetState(() {
+                                  obscureNewPassword = !obscureNewPassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 16),
+
+                        TextField(
+                          autocorrect: false,
+                          autofillHints: [],
+                          obscureText:
+                              obscureConfirmPassword, // This variable is from the parent state
+                          canRequestFocus: true,
+                          controller: _confirmPasswordController,
+                          decoration: InputDecoration(
+                            label: Text("Confirm Password"),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureConfirmPassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: () {
+                                // Call the local setState from StatefulBuilder
+                                innerSetState(() {
+                                  obscureConfirmPassword =
+                                      !obscureConfirmPassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+
+                        if (error.isNotEmpty) SizedBox(height: 16),
+
+                        if (error.isNotEmpty)
+                          Text(
+                            error,
+                            style: TextStyle(color: MainColor().error),
+                          ),
+
+                        SizedBox(height: 16),
+                        Divider(),
+                        SizedBox(height: 16),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text('Cancel'),
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: isValid
+                                    ? () async {
+                                        var result =
+                                            await reauthenticateAndChangePassword(
+                                              _currentPasswordController.text,
+                                              _newPasswordController.text,
+                                            );
+                                        if (result.success && mounted) {
+                                          innerSetState(() {
+                                            error = "";
+                                          });
+                                          Navigator.pop(context);
+
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                "Password successfully updated.",
+                                              ),
+                                              backgroundColor:
+                                                  MainColor().success,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        innerSetState(() {
+                                          error = result.message ?? "";
+                                        });
+                                      }
+                                    : null,
+                                child: const Text('Continue'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+    });
   }
 }

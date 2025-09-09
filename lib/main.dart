@@ -35,11 +35,33 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: MainColor().primary),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: MainColor().primary,
+          ).copyWith(primary: MainColor().tertiary),
           inputDecorationTheme: const InputDecorationTheme(
             border: OutlineInputBorder(),
           ),
-          useMaterial3: true,
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  20.0,
+                ), // Set the desired radius here
+              ),
+            ),
+          ),
+
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  20.0,
+                ), // Set the desired radius
+              ),
+            ),
+          ),
+
+          useMaterial3: false,
         ),
         routes: {
           '/': (context) => const Wrapper(),

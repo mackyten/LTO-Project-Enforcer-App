@@ -101,6 +101,7 @@ class _HomePageState extends State<HomePage> {
     showModalBottomSheet(
       showDragHandle: true,
       useSafeArea: true,
+      isScrollControlled: true,
       context: context,
       builder: (BuildContext context) {
         return IntrinsicHeight(
