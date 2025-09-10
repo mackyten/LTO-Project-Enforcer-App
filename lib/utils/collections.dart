@@ -5,8 +5,8 @@ extension CollectionsExtension on Collections {
     switch (this) {
       case Collections.reports:
         return 'reports';
-      case Collections.enforcers:
-        return 'enforcers';
+      case Collections.users:
+        return 'users';
       case Collections.enforcerIdType:
         return 'enforcer_id_type';
     }

@@ -5,7 +5,7 @@ import 'package:enforcer_auto_fine/enums/collections.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<bool> handleSave(ReportModel data) async {
+Future<String?> handleSave(ReportModel data) async {
   try {
     // Get an instance of Firestore
     final db = FirebaseFirestore.instance;
@@ -17,9 +17,11 @@ Future<bool> handleSave(ReportModel data) async {
     await db.collection(Collections.reports.name).add(reportData);
 
     print('Report successfully saved to Firestore!');
-    return true;
+    var tNumber = ReportModel.fromJson(reportData).trackingNumber;
+
+    return tNumber;
   } catch (e) {
     print('Error saving report to Firestore: $e');
-    return false;
+    return null;
   }
 }

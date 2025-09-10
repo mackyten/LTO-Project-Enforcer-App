@@ -30,7 +30,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(HomeError(message: enforcerResponse.message!));
         return;
       }
-      final EnforcerModel enforcerData = enforcerResponse.data!;
+      final UserModel enforcerData = enforcerResponse.data!;
 
       // Fetch violation reports
       // (You need to create a service for this similar to fetchUserData)

@@ -76,22 +76,22 @@ class HomeHandlers {
     );
   }
 
-  Future<ResponseModel<EnforcerModel>> fetchUserData() async {
+  Future<ResponseModel<UserModel>> fetchUserData() async {
     try {
-      var response = ResponseModel<EnforcerModel>(null, false, null);
+      var response = ResponseModel<UserModel>(null, false, null);
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         response.success = false;
         response.message = 'No authenticated user found';
       }
       final userUUID = currentUser?.uid;
-      final collectionReference = _db.collection(Collections.enforcers.name);
+      final collectionReference = _db.collection(Collections.users.name);
       final querySnapshot = await collectionReference
           .where('uuid', isEqualTo: userUUID)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        var data = EnforcerModel.fromJson(querySnapshot.docs.first.data());
+        var data = UserModel.fromJson(querySnapshot.docs.first.data());
         response.data = data;
         response.success = true;
       } else {

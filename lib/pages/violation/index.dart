@@ -6,6 +6,8 @@ import 'package:enforcer_auto_fine/pages/violation/components/navigation.dart';
 import 'package:enforcer_auto_fine/pages/violation/components/violation_item.dart';
 import 'package:enforcer_auto_fine/pages/violation/handlers.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
+import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
+import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
 import 'package:enforcer_auto_fine/shared/components/loading_overlay/index.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
@@ -215,7 +217,8 @@ class _ViolationPageState extends State<ViolationPage>
     }
   }
 
-  Future<void> submitForm(BuildContext context) async {
+  Future<String?> submitForm(BuildContext context) async {
+    String? trackingNumber;
     setState(() {
       isSaving = true;
     });
@@ -229,7 +232,7 @@ class _ViolationPageState extends State<ViolationPage>
       setState(() {
         isSaving = false;
       });
-      return;
+      return null;
     }
     bool isValid = _validateCurrentStep(context);
     if (isValid) {
@@ -262,13 +265,13 @@ class _ViolationPageState extends State<ViolationPage>
             .toList(),
       );
 
-      var result = await handleSave(data);
-      if (!result) {
+      trackingNumber = await handleSave(data);
+      if (trackingNumber == null) {
         showAlert(context, 'Error', 'Failed to save report. Please try again.');
         setState(() {
           isSaving = false;
         });
-        return;
+        return null;
       }
 
       if (widget.initialData != null && widget.initialData?.draftId != null) {
@@ -284,6 +287,7 @@ class _ViolationPageState extends State<ViolationPage>
     setState(() {
       isSaving = false;
     });
+    return trackingNumber;
   }
 
   Future<void> navigateBackToHome() async {
@@ -464,13 +468,71 @@ class _ViolationPageState extends State<ViolationPage>
                     totalSteps: totalSteps,
                     previousStep: previousStep,
                     submitForm: () => submitForm(context).then(
-                      (e) => {
+                      (trackingNumber) => {
                         showCupertinoDialog(
                           context: context,
                           builder: (context) => CupertinoAlertDialog(
-                            title: Text('✅ Success'),
-                            content: Text(
-                              'Report submitted successfully!\n\nThank you for helping keep our community safe.',
+                            title: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.verified,
+                                  color: MainColor().success,
+                                  size: 60,
+                                ),
+                                Text('Report submitted successfully!'),
+                              ],
+                            ),
+                            content: Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Divider(),
+                                  Text(
+                                    "Tracking Number",
+                                    style: TextStyle(
+                                      fontSize: FontSizes().caption,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  Text(
+                                    trackingNumber ?? "",
+                                    style: TextStyle(
+                                      fontSize: FontSizes().h3,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.copy),
+                                    label: Text("Copy to Clipboard"),
+                                    onPressed: () {
+                                      // Copy the tracking number to the clipboard
+                                      if (trackingNumber != null) {
+                                        Clipboard.setData(
+                                          ClipboardData(text: trackingNumber!),
+                                        );
+
+                                        // Optional: Show a snackbar or toast to confirm the copy action
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Tracking number copied!',
+                                            ),
+                                            duration: Duration(seconds: 1),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                             actions: [
                               CupertinoDialogAction(

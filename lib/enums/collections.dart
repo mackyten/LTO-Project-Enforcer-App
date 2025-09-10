@@ -1,5 +1,5 @@
 enum Collections {
   reports,
-  enforcers,
+  users,
   enforcerIdType
 }

@@ -474,7 +474,7 @@ class _ProfileState extends State<Profile> {
       }
     }
     _setSaving();
-    var updatedUserData = new EnforcerModel(
+    var updatedUserData = new UserModel(
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
       uuid: uuid,

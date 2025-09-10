@@ -3,11 +3,11 @@ import 'package:enforcer_auto_fine/enums/collections.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
 import 'package:enforcer_auto_fine/utils/file_uploader.dart';
 
-handleSaveData(EnforcerModel user) async {
+handleSaveData(UserModel user) async {
   final db = FirebaseFirestore.instance;
 
   final querySnapshot = await db
-      .collection(Collections.enforcers.name)
+      .collection(Collections.users.name)
       .where('uuid', isEqualTo: user.uuid)
       .limit(1)
       .get();

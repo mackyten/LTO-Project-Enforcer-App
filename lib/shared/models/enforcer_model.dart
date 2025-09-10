@@ -1,4 +1,4 @@
-class EnforcerModel {
+class UserModel {
   String firstName;
   String lastName;
   String profilePictureUrl = '';
@@ -12,7 +12,7 @@ class EnforcerModel {
   String? tempBadgePhoto;
   String? tempPassword;
 
-  EnforcerModel({
+  UserModel({
     required this.firstName,
     required this.lastName,
     required this.uuid,
@@ -49,8 +49,8 @@ class EnforcerModel {
   }
 
 
-  factory EnforcerModel.fromJson(Map<String, dynamic> json) {
-    return EnforcerModel(
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
       firstName: json['firstName'],
       lastName: json['lastName'],
       profilePictureUrl: json['profilePictureUrl'] ?? '',
