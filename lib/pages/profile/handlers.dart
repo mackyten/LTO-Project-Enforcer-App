@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enforcer_auto_fine/enums/collections.dart';
-import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
+import 'package:enforcer_auto_fine/shared/models/user_model.dart';
 import 'package:enforcer_auto_fine/utils/file_uploader.dart';
 
 handleSaveData(UserModel user) async {
@@ -21,7 +21,7 @@ handleSaveData(UserModel user) async {
 
     // Now you can get the values of other fields.
     final String profilePictureUrl = userDataMap['profilePictureUrl'];
-    final String badgePhoto = userDataMap['badgePhoto'];
+    //final String badgePhoto = userDataMap['badgePhoto'];
 
     if (profilePictureUrl.isNotEmpty &&
         user.tempProfilePicture != null &&
@@ -31,19 +31,19 @@ handleSaveData(UserModel user) async {
       user.profilePictureUrl = user.tempProfilePicture!;
     }
 
-    if (badgePhoto.isNotEmpty &&
-        user.tempProfilePicture != null &&
-        user.tempProfilePicture != '') {
-      final result = await CloudinaryService.deletePhoto(badgePhoto);
-      print(result);
-      user.badgePhoto = user.tempBadgePhoto;
-    }
+    // if (badgePhoto.isNotEmpty &&
+    //     user.tempProfilePicture != null &&
+    //     user.tempProfilePicture != '') {
+    //   final result = await CloudinaryService.deletePhoto(badgePhoto);
+    //   print(result);
+    //   user.badgePhoto = user.tempBadgePhoto;
+    // }
 
     // Get the document reference to perform an update.
     final docRef = docSnapshot.reference;
 
     // Create the update data.
-    final userData = user.toUpdateJson();
+    final userData = user.toJson();
 
     // Update the document.
     await docRef.update(userData);

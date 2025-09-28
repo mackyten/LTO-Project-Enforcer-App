@@ -30,7 +30,12 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
           }
 
           if (state is HomeLoaded) {
-            var enforcerData = state.enforcerData;
+            var user;
+            if (state.isDriver) {
+              user = state.driverData!;
+            } else {
+              user = state.enforcerData;
+            }
             return Column(
               children: [
                 Expanded(
@@ -47,10 +52,10 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
                               radius:
                                   30, // radius is half the desired width/height
                               backgroundImage:
-                                  enforcerData.profilePictureUrl.isNotEmpty
-                                  ? NetworkImage(enforcerData.profilePictureUrl)
+                                  user.profilePictureUrl?.isNotEmpty == true
+                                  ? NetworkImage(user.profilePictureUrl!)
                                   : null,
-                              child: enforcerData.profilePictureUrl.isEmpty
+                              child: user.profilePictureUrl?.isEmpty ?? true
                                   ? Icon(Icons.account_circle, size: 50)
                                   : null,
                             ),
@@ -59,13 +64,13 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  enforcerData.getFullName(),
+                                  user.getFullName(),
                                   style: TextStyle(
                                     color: MainColor().textPrimary,
                                   ),
                                 ),
                                 Text(
-                                  enforcerData.email,
+                                  user.email,
                                   style: TextStyle(
                                     color: MainColor().textPrimary,
                                     fontSize: FontSizes().caption,

@@ -2,15 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../enums/user_roles.dart';
 import 'user_model.dart';
 
-class EnforcerModel extends UserModel {
-  final String? enforcerIdNumber;
-  final String? badgePhoto;
+class DriverModel extends UserModel {
+  final String? driverLicenseNumber;
+  final String? plateNumber;
 
-  // Temporary fields for uploads
-
-  final String? tempPassword;
-
-  EnforcerModel({
+  DriverModel({
     required super.createdAt,
     super.lastUpdatedAt,
     super.isDeleted,
@@ -26,9 +22,8 @@ class EnforcerModel extends UserModel {
     required super.roles,
     super.queryKeys,
     super.temporaryPassword,
-    this.enforcerIdNumber,
-    this.badgePhoto,
-    this.tempPassword,
+    this.driverLicenseNumber,
+    this.plateNumber,
   });
 
   @override
@@ -36,26 +31,26 @@ class EnforcerModel extends UserModel {
     final baseJson = super.toJson();
     return {
       ...baseJson,
-      'enforcerIdNumber': enforcerIdNumber,
-      'badgePhoto': badgePhoto,
+      'driverLicenseNumber': driverLicenseNumber,
+      'plateNumber': plateNumber,
     };
   }
 
-  factory EnforcerModel.fromJson(Map<String, dynamic> json) {
-    return EnforcerModel(
-      createdAt: json['createdAt'] is Timestamp
+  factory DriverModel.fromJson(Map<String, dynamic> json) {
+    return DriverModel(
+      createdAt: json['createdAt'] is Timestamp 
           ? (json['createdAt'] as Timestamp).toDate()
           : DateTime.parse(json['createdAt']),
-      lastUpdatedAt: json['lastUpdatedAt'] != null
-          ? (json['lastUpdatedAt'] is Timestamp
-                ? (json['lastUpdatedAt'] as Timestamp).toDate()
-                : DateTime.parse(json['lastUpdatedAt']))
+      lastUpdatedAt: json['lastUpdatedAt'] != null 
+          ? (json['lastUpdatedAt'] is Timestamp 
+              ? (json['lastUpdatedAt'] as Timestamp).toDate()
+              : DateTime.parse(json['lastUpdatedAt']))
           : null,
       isDeleted: json['isDeleted'],
-      deletedAt: json['deletedAt'] != null
-          ? (json['deletedAt'] is Timestamp
-                ? (json['deletedAt'] as Timestamp).toDate()
-                : DateTime.parse(json['deletedAt']))
+      deletedAt: json['deletedAt'] != null 
+          ? (json['deletedAt'] is Timestamp 
+              ? (json['deletedAt'] as Timestamp).toDate()
+              : DateTime.parse(json['deletedAt']))
           : null,
       documentId: json['documentId'],
       uuid: json['uuid'],
@@ -66,24 +61,22 @@ class EnforcerModel extends UserModel {
       mobileNumber: json['mobileNumber'],
       profilePictureUrl: json['profilePictureUrl'],
       roles: (json['roles'] as List<dynamic>)
-          .map(
-            (role) => UserRoles.values.firstWhere(
-              (e) => e.toString().split('.').last == role,
-              orElse: () => UserRoles.None,
-            ),
-          )
+          .map((role) => UserRoles.values.firstWhere(
+                (e) => e.toString().split('.').last == role,
+                orElse: () => UserRoles.None,
+              ))
           .toList(),
-      queryKeys: json['queryKeys'] != null
-          ? List<String>.from(json['queryKeys'])
+      queryKeys: json['queryKeys'] != null 
+          ? List<String>.from(json['queryKeys']) 
           : null,
       temporaryPassword: json['temporaryPassword'],
-      enforcerIdNumber: json['enforcerIdNumber'],
-      badgePhoto: json['badgePhoto'],
+      driverLicenseNumber: json['driverLicenseNumber'],
+      plateNumber: json['plateNumber'],
     );
   }
 
   @override
-  EnforcerModel copyWith({
+  DriverModel copyWith({
     DateTime? createdAt,
     DateTime? lastUpdatedAt,
     bool? isDeleted,
@@ -99,13 +92,10 @@ class EnforcerModel extends UserModel {
     List<UserRoles>? roles,
     List<String>? queryKeys,
     String? temporaryPassword,
-    String? enforcerIdNumber,
-    String? badgePhoto,
-    String? tempProfilePicture,
-    String? tempBadgePhoto,
-    String? tempPassword,
+    String? driverLicenseNumber,
+    String? plateNumber,
   }) {
-    return EnforcerModel(
+    return DriverModel(
       createdAt: createdAt ?? this.createdAt,
       lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -121,29 +111,8 @@ class EnforcerModel extends UserModel {
       roles: roles ?? this.roles,
       queryKeys: queryKeys ?? this.queryKeys,
       temporaryPassword: temporaryPassword ?? this.temporaryPassword,
-      enforcerIdNumber: enforcerIdNumber ?? this.enforcerIdNumber,
-      badgePhoto: badgePhoto ?? this.badgePhoto,
-      tempPassword: tempPassword ?? this.tempPassword,
+      driverLicenseNumber: driverLicenseNumber ?? this.driverLicenseNumber,
+      plateNumber: plateNumber ?? this.plateNumber,
     );
-  }
-
-  // Helper methods
-  Map<String, dynamic> toUpdateJson() {
-    return {
-      'uuid': uuid,
-      'lastUpdatedAt': DateTime.now(),
-      'firstName': firstName,
-      'lastName': lastName,
-      'profilePictureUrl': profilePictureUrl,
-      'email': email,
-      'mobileNumber': mobileNumber,
-      'badgePhoto': badgePhoto,
-      'enforcerIdNumber': enforcerIdNumber,
-    };
-  }
-
-  @override
-  String getFullName() {
-    return '$firstName $lastName';
   }
 }

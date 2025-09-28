@@ -4,11 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enforcer_auto_fine/pages/home/models.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
+import 'package:enforcer_auto_fine/shared/models/user_model.dart' as UserModelWithRoles;
+import 'package:enforcer_auto_fine/shared/models/driver_model.dart';
 import 'package:enforcer_auto_fine/shared/models/response_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../enums/collections.dart';
+import '../../enums/user_roles.dart';
 
 class HomeHandlers {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -76,9 +79,9 @@ class HomeHandlers {
     );
   }
 
-  Future<ResponseModel<UserModel>> fetchUserData() async {
+  Future<ResponseModel<UserModelWithRoles.UserModel>> fetchUserData() async {
     try {
-      var response = ResponseModel<UserModel>(null, false, null);
+      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, null);
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         response.success = false;
@@ -91,7 +94,7 @@ class HomeHandlers {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        var data = UserModel.fromJson(querySnapshot.docs.first.data());
+        var data = UserModelWithRoles.UserModel.fromJson(querySnapshot.docs.first.data());
         response.data = data;
         response.success = true;
       } else {
@@ -125,5 +128,92 @@ class HomeHandlers {
     }
 
     return drafts;
+  }
+
+  Future<ResponseModel<UserModelWithRoles.UserModel>> fetchUserDataWithRoles() async {
+    try {
+      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, null);
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        response.success = false;
+        response.message = 'No authenticated user found';
+        return response;
+      }
+      final userUUID = currentUser.uid;
+      final docRef = FirebaseFirestore.instance.collection('users').doc(userUUID);
+      final docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        var data = UserModelWithRoles.UserModel.fromJson(docSnapshot.data()!);
+        response.data = data;
+        response.success = true;
+      } else {
+        response.success = false;
+        response.message = 'No user data found';
+      }
+
+      return response;
+    } catch (e) {
+      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, e.toString());
+      return response;
+    }
+  }
+
+  /// Enhanced method that returns typed user data based on roles
+  Future<ResponseModel<UserModelWithRoles.UserModel>> fetchTypedUserData() async {
+    try {
+      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, null);
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        response.success = false;
+        response.message = 'No authenticated user found';
+        return response;
+      }
+      
+      final userUUID = currentUser.uid;
+      final docRef = FirebaseFirestore.instance.collection('users').doc(userUUID);
+      final docSnapshot = await docRef.get();
+
+      if (!docSnapshot.exists) {
+        response.success = false;
+        response.message = 'No user data found';
+        return response;
+      }
+
+      // Get the raw data from Firestore
+      final rawData = docSnapshot.data()!;
+      
+      // Parse roles to determine user type
+      final rolesList = rawData['roles'] as List<dynamic>?;
+      final roles = rolesList?.map((role) => UserRoles.values.firstWhere(
+            (e) => e.toString().split('.').last == role,
+            orElse: () => UserRoles.None,
+          )).toList() ?? [];
+      
+      // Check if user is a driver [UserRoles.None, UserRoles.Driver]
+      if (roles.length == 2 && 
+          roles.contains(UserRoles.None) && 
+          roles.contains(UserRoles.Driver)) {
+        // Create DriverModel directly from raw Firestore data
+        final driverData = DriverModel.fromJson(rawData);
+        return ResponseModel<UserModelWithRoles.UserModel>(driverData, true, null);
+      }
+      
+      // Check if user is an enforcer [UserRoles.None, UserRoles.Enforcer]  
+      if (roles.length == 2 && 
+          roles.contains(UserRoles.None) && 
+          roles.contains(UserRoles.Enforcer)) {
+        // Create EnforcerModel directly from raw Firestore data
+        final enforcerData = EnforcerModel.fromJson(rawData);
+        return ResponseModel<UserModelWithRoles.UserModel>(enforcerData, true, null);
+      }
+      
+      // For any other role combination, return the base user data
+      final userData = UserModelWithRoles.UserModel.fromJson(rawData);
+      return ResponseModel<UserModelWithRoles.UserModel>(userData, true, null);
+      
+    } catch (e) {
+      return ResponseModel<UserModelWithRoles.UserModel>(null, false, e.toString());
+    }
   }
 }

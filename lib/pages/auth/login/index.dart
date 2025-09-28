@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:enforcer_auto_fine/pages/auth/handlers.dart';
 import 'package:enforcer_auto_fine/pages/auth/login/components/poligon_clipper.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
@@ -124,7 +122,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 63),
                     TextField(
-                      readOnly: true,
                       controller: _emailController,
                       style: TextStyle(color: MainColor().textPrimary),
 
@@ -132,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: 24),
                     TextField(
-                      readOnly: true,
                       obscureText: true,
                       controller: _passwordController,
                       style: TextStyle(color: MainColor().textPrimary),
@@ -177,6 +173,16 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       onPressed: () {},
                       child: Text("Forgot password"),
+                    ),
+                    SizedBox(height: 16),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: MainColor().accent,
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/driver-registration');
+                      },
+                      child: Text("Driver Registration"),
                     ),
                     // Add your other login widgets here
                     // e.g., TextFields, "or connect with", Social buttons, etc.

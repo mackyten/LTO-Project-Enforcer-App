@@ -12,6 +12,7 @@ import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_id_type_model.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
+import 'package:enforcer_auto_fine/shared/models/user_model.dart';
 import 'package:enforcer_auto_fine/utils/file_uploader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -63,7 +64,12 @@ class _ProfileState extends State<Profile> {
     context.read<HomeBloc>().add(FetchHomeData());
     final homeBlocState = context.read<HomeBloc>().state;
     if (homeBlocState is HomeLoaded) {
-      var user = homeBlocState.enforcerData;
+      var user;
+      if (homeBlocState.isDriver) {
+        user = homeBlocState.driverData!;
+      } else {
+        user = homeBlocState.enforcerData;
+      }
       _emailController.text = user.email;
       _lastNameController.text = user.lastName;
       _firstNameController.text = user.firstName;
@@ -92,11 +98,7 @@ class _ProfileState extends State<Profile> {
     });
   }
 
-  void _setReauthPasswordObscure() {
-    setState(() {
-      obscureReauthPassword = !obscureReauthPassword;
-    });
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +113,12 @@ class _ProfileState extends State<Profile> {
           return Center(child: Text('Error: ${state.message}'));
         }
         if (state is HomeLoaded) {
-          var user = state.enforcerData;
+          var user;
+          if (state.isDriver) {
+            user = state.driverData!;
+          } else {
+            user = state.enforcerData;
+          }
 
           return Stack(
             children: [
@@ -168,10 +175,10 @@ class _ProfileState extends State<Profile> {
                                     radius: 80,
                                     backgroundImage: userProfilePic != null
                                         ? FileImage(userProfilePic!)
-                                        : user.profilePictureUrl.isNotEmpty
-                                        ? NetworkImage(user.profilePictureUrl)
+                                        : (user.profilePictureUrl?.isNotEmpty == true)
+                                        ? NetworkImage(user.profilePictureUrl!)
                                         : null,
-                                    child: user.profilePictureUrl.isEmpty
+                                    child: (user.profilePictureUrl?.isEmpty ?? true)
                                         ? Icon(Icons.account_circle, size: 50)
                                         : null,
                                   ),
@@ -255,15 +262,13 @@ class _ProfileState extends State<Profile> {
                                                   badgePhoto!,
                                                   fit: BoxFit.cover,
                                                 )
-                                              : (user.badgePhoto == null ||
-                                                    user.badgePhoto!.isEmpty)
-                                              ? Container(
+                                              : Container(
                                                   decoration: BoxDecoration(
                                                     color: Colors.white12,
                                                   ),
                                                   child: Center(
                                                     child: Text(
-                                                      'No photo',
+                                                      'No badge photo',
                                                       style: TextStyle(
                                                         color: isEditMode
                                                             ? Colors.transparent
@@ -272,35 +277,6 @@ class _ProfileState extends State<Profile> {
                                                       ),
                                                     ),
                                                   ),
-                                                )
-                                              : Image.network(
-                                                  user.badgePhoto!,
-                                                  fit: BoxFit.cover,
-                                                  loadingBuilder:
-                                                      (
-                                                        BuildContext context,
-                                                        Widget child,
-                                                        ImageChunkEvent?
-                                                        loadingProgress,
-                                                      ) {
-                                                        if (loadingProgress ==
-                                                            null) {
-                                                          return child;
-                                                        }
-                                                        return Center(
-                                                          child: CircularProgressIndicator(
-                                                            value:
-                                                                loadingProgress
-                                                                        .expectedTotalBytes !=
-                                                                    null
-                                                                ? loadingProgress
-                                                                          .cumulativeBytesLoaded /
-                                                                      loadingProgress
-                                                                          .expectedTotalBytes!
-                                                                : null,
-                                                          ),
-                                                        );
-                                                      },
                                                 ),
                                         ),
                                         if (isEditMode)

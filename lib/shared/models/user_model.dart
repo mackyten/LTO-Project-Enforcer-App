@@ -1,34 +1,42 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../enums/user_roles.dart';
-import 'user_model.dart';
+import 'firestore_base_model.dart';
 
-class EnforcerModel extends UserModel {
-  final String? enforcerIdNumber;
-  final String? badgePhoto;
+class UserModel extends FirestoreBaseModel {
+  final String? documentId;
+  final String uuid;
+  final String firstName;
+  final String lastName;
+  final String? middleName;
+  final String email;
+  final String? mobileNumber;
+  String? profilePictureUrl;
+  final List<UserRoles>? roles;
+  final List<String>? queryKeys;
+  final String? temporaryPassword;
+  String? tempProfilePicture;
+  String? tempBadgePhoto;
 
-  // Temporary fields for uploads
-
-  final String? tempPassword;
-
-  EnforcerModel({
-    required super.createdAt,
+  UserModel({
+    super.createdAt,
     super.lastUpdatedAt,
     super.isDeleted,
     super.deletedAt,
-    super.documentId,
-    required super.uuid,
-    required super.firstName,
-    required super.lastName,
-    super.middleName,
-    required super.email,
-    super.mobileNumber,
-    super.profilePictureUrl,
-    required super.roles,
-    super.queryKeys,
-    super.temporaryPassword,
-    this.enforcerIdNumber,
-    this.badgePhoto,
-    this.tempPassword,
+    this.documentId,
+    required this.uuid,
+    required this.firstName,
+    required this.lastName,
+    this.middleName,
+    required this.email,
+    this.mobileNumber,
+    this.profilePictureUrl,
+    this.roles,
+    this.queryKeys,
+    this.temporaryPassword,
+    this.tempProfilePicture,
+    this.tempBadgePhoto,
   });
 
   @override
@@ -36,13 +44,22 @@ class EnforcerModel extends UserModel {
     final baseJson = super.toJson();
     return {
       ...baseJson,
-      'enforcerIdNumber': enforcerIdNumber,
-      'badgePhoto': badgePhoto,
+      'documentId': documentId,
+      'uuid': uuid,
+      'firstName': firstName,
+      'lastName': lastName,
+      'middleName': middleName,
+      'email': email,
+      'mobileNumber': mobileNumber,
+      'profilePictureUrl': profilePictureUrl,
+      'roles': roles?.map((role) => role.toString().split('.').last).toList(),
+      'queryKeys': queryKeys,
+      'temporaryPassword': temporaryPassword,
     };
   }
 
-  factory EnforcerModel.fromJson(Map<String, dynamic> json) {
-    return EnforcerModel(
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
       createdAt: json['createdAt'] is Timestamp
           ? (json['createdAt'] as Timestamp).toDate()
           : DateTime.parse(json['createdAt']),
@@ -77,13 +94,10 @@ class EnforcerModel extends UserModel {
           ? List<String>.from(json['queryKeys'])
           : null,
       temporaryPassword: json['temporaryPassword'],
-      enforcerIdNumber: json['enforcerIdNumber'],
-      badgePhoto: json['badgePhoto'],
     );
   }
 
-  @override
-  EnforcerModel copyWith({
+  UserModel copyWith({
     DateTime? createdAt,
     DateTime? lastUpdatedAt,
     bool? isDeleted,
@@ -99,13 +113,8 @@ class EnforcerModel extends UserModel {
     List<UserRoles>? roles,
     List<String>? queryKeys,
     String? temporaryPassword,
-    String? enforcerIdNumber,
-    String? badgePhoto,
-    String? tempProfilePicture,
-    String? tempBadgePhoto,
-    String? tempPassword,
   }) {
-    return EnforcerModel(
+    return UserModel(
       createdAt: createdAt ?? this.createdAt,
       lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -121,29 +130,13 @@ class EnforcerModel extends UserModel {
       roles: roles ?? this.roles,
       queryKeys: queryKeys ?? this.queryKeys,
       temporaryPassword: temporaryPassword ?? this.temporaryPassword,
-      enforcerIdNumber: enforcerIdNumber ?? this.enforcerIdNumber,
-      badgePhoto: badgePhoto ?? this.badgePhoto,
-      tempPassword: tempPassword ?? this.tempPassword,
     );
   }
 
-  // Helper methods
-  Map<String, dynamic> toUpdateJson() {
-    return {
-      'uuid': uuid,
-      'lastUpdatedAt': DateTime.now(),
-      'firstName': firstName,
-      'lastName': lastName,
-      'profilePictureUrl': profilePictureUrl,
-      'email': email,
-      'mobileNumber': mobileNumber,
-      'badgePhoto': badgePhoto,
-      'enforcerIdNumber': enforcerIdNumber,
-    };
-  }
-
-  @override
   String getFullName() {
+    if (middleName != null && middleName!.isNotEmpty) {
+      return '$firstName $middleName $lastName';
+    }
     return '$firstName $lastName';
   }
 }

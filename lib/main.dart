@@ -4,6 +4,11 @@ import 'package:enforcer_auto_fine/pages/profile/index.dart';
 import 'package:enforcer_auto_fine/pages/violation/bloc/violation_bloc.dart';
 import 'package:enforcer_auto_fine/pages/violation/index.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
+import 'package:enforcer_auto_fine/pages/driver_registration/index.dart';
+import 'package:enforcer_auto_fine/pages/appeal/index.dart';
+import 'routes.dart';
+
+
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/wrapper.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +72,8 @@ class MyApp extends StatelessWidget {
           '/': (context) => const Wrapper(),
           '/home': (context) => const HomePage(),
           '/profile': (context) => const Profile(),
+          '/driver-registration': (context) => const DriverRegistrationPage(),
+          '/appeal': (context) => const AppealPage(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/violations') {
@@ -77,6 +84,13 @@ class MyApp extends StatelessWidget {
               },
             );
           }
+          
+          // Try external routes for driver violations
+          final externalRoute = AppRoutes.onGenerateRoute(settings);
+          if (externalRoute != null) {
+            return externalRoute;
+          }
+          
           // Handle other routes
           return null;
         },
