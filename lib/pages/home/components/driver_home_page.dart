@@ -176,6 +176,15 @@ class DriverHomePage extends StatelessWidget {
                     Navigator.pushNamed(context, '/appeal');
                   },
                 ),
+                _buildQuickActionCard(
+                  icon: Icons.format_list_bulleted,
+                  title: 'My Appeals',
+                  subtitle: 'View appeal status',
+                  color: Colors.purple,
+                  onTap: () {
+                    Navigator.pushNamed(context, '/driver-appeals');
+                  },
+                ),
               ],
             ),
             SizedBox(height: 25),

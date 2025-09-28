@@ -1,21 +1,14 @@
 // home_bloc.dart
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../models/violations_config.dart';
 
 part 'violation_event.dart';
 part 'violation_state.dart';
 
 class ViolationBloc extends Bloc<ViolationEvent, ViolationState> {
   ViolationBloc()
-      : super(const HomeLoaded(violations: {
-          'speeding': false,
-          'illegal-parking': false,
-          'traffic-light': false,
-          'reckless-driving': false,
-          'phone-use': false,
-          'no-seatbelt': false,
-          'other': false,
-        })) {
+      : super(HomeLoaded(violations: ViolationsConfig.getDefaultViolationsMap())) {
     on<UpdateViolationEvent>(_onUpdateViolation);
     on<ResetViolationsEvent>(_onResetViolations);
   }

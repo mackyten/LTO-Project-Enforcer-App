@@ -1,11 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../shared/app_theme/colors.dart';
 import '../../shared/app_theme/fonts.dart';
 import '../../shared/decorations/app_bg.dart';
 import '../../shared/components/textfield/app_input_border.dart';
+import 'handlers.dart';
+import 'models/appeal_model.dart';
 
 class AppealPage extends StatefulWidget {
-  const AppealPage({super.key});
+  final String? prefilledTrackingNumber;
+  
+  const AppealPage({super.key, this.prefilledTrackingNumber});
 
   @override
   State<AppealPage> createState() => _AppealPageState();
@@ -13,26 +19,33 @@ class AppealPage extends StatefulWidget {
 
 class _AppealPageState extends State<AppealPage> {
   final _formKey = GlobalKey<FormState>();
-  final _violationNumberController = TextEditingController();
+  final _trackingNumberController = TextEditingController();
   final _reasonController = TextEditingController();
-  final _descriptionController = TextEditingController();
 
-  String _selectedAppealType = 'wrongful_citation';
   bool _isSubmitting = false;
+  final AppealHandlers _appealHandlers = AppealHandlers();
+  final ImagePicker _picker = ImagePicker();
 
-  final List<Map<String, String>> _appealTypes = [
-    {'value': 'wrongful_citation', 'label': 'Wrongful Citation'},
-    {'value': 'incorrect_amount', 'label': 'Incorrect Fine Amount'},
-    {'value': 'vehicle_misidentification', 'label': 'Vehicle Misidentification'},
-    {'value': 'procedural_error', 'label': 'Procedural Error'},
-    {'value': 'other', 'label': 'Other'},
-  ];
+  // File lists
+  List<File> _uploadedDocuments = [];
+  List<File> _supportingDocuments = [];
+
+  final int _maxFiles = 3;
+  final double _maxFileSizeMB = 5.0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill tracking number if provided
+    if (widget.prefilledTrackingNumber != null) {
+      _trackingNumberController.text = widget.prefilledTrackingNumber!;
+    }
+  }
 
   @override
   void dispose() {
-    _violationNumberController.dispose();
+    _trackingNumberController.dispose();
     _reasonController.dispose();
-    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -105,9 +118,9 @@ class _AppealPageState extends State<AppealPage> {
               ),
               SizedBox(height: 30),
 
-              // Violation Number
+              // Violation Tracking Number
               Text(
-                'Violation Number *',
+                'Violation Tracking Number *',
                 style: TextStyle(
                   fontSize: FontSizes().body,
                   fontWeight: FontWeight.w600,
@@ -116,55 +129,15 @@ class _AppealPageState extends State<AppealPage> {
               ),
               SizedBox(height: 8),
               TextFormField(
-                controller: _violationNumberController,
+                controller: _trackingNumberController,
                 style: TextStyle(color: MainColor().textPrimary),
-                decoration: appInputDecoration('Violation Number').copyWith(
-                  hintText: 'Enter violation number (e.g., VIO-2024-001)',
-                  prefixIcon: Icon(Icons.receipt_long, color: MainColor().textPrimary),
+                decoration: appInputDecoration('Tracking Number').copyWith(
+                  hintText: 'Enter violation tracking number',
+                  prefixIcon: Icon(Icons.track_changes, color: MainColor().textPrimary),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter the violation number';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Appeal Type
-              Text(
-                'Appeal Type *',
-                style: TextStyle(
-                  fontSize: FontSizes().body,
-                  fontWeight: FontWeight.w600,
-                  color: MainColor().textPrimary,
-                ),
-              ),
-              SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _selectedAppealType,
-                dropdownColor: MainColor().secondary,
-                style: TextStyle(color: MainColor().textPrimary),
-                decoration: appInputDecoration('Appeal Type').copyWith(
-                  prefixIcon: Icon(Icons.category, color: MainColor().textPrimary),
-                ),
-                items: _appealTypes.map((type) {
-                  return DropdownMenuItem<String>(
-                    value: type['value'],
-                    child: Text(
-                      type['label']!,
-                      style: TextStyle(color: MainColor().textPrimary),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedAppealType = value!;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please select an appeal type';
+                    return 'Please enter the violation tracking number';
                   }
                   return null;
                 },
@@ -181,49 +154,56 @@ class _AppealPageState extends State<AppealPage> {
                 ),
               ),
               SizedBox(height: 8),
+              Text(
+                'Characters: ${_reasonController.text.length}/1000',
+                style: TextStyle(
+                  fontSize: FontSizes().caption,
+                  color: MainColor().textPrimary.withOpacity(0.6),
+                ),
+              ),
+              SizedBox(height: 4),
               TextFormField(
                 controller: _reasonController,
+                maxLines: 6,
+                maxLength: 1000,
                 style: TextStyle(color: MainColor().textPrimary),
                 decoration: appInputDecoration('Reason for Appeal').copyWith(
-                  hintText: 'Brief reason for your appeal',
-                  prefixIcon: Icon(Icons.edit, color: MainColor().textPrimary),
+                  hintText: 'Provide detailed explanation of why you are appealing this violation...',
+                  alignLabelWithHint: true,
+                  counterText: '', // Hide default counter
                 ),
+                onChanged: (value) {
+                  setState(() {}); // Update character count
+                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please provide a reason for your appeal';
+                  }
+                  if (value.length < 20) {
+                    return 'Reason must be at least 20 characters long';
                   }
                   return null;
                 },
               ),
               SizedBox(height: 20),
 
-              // Detailed Description
-              Text(
-                'Detailed Description *',
-                style: TextStyle(
-                  fontSize: FontSizes().body,
-                  fontWeight: FontWeight.w600,
-                  color: MainColor().textPrimary,
-                ),
+              // Upload Documents
+              _buildFileUploadSection(
+                'Upload Documents',
+                'Upload pictures, videos, or documents that support your appeal',
+                _uploadedDocuments,
+                (files) => setState(() => _uploadedDocuments = files),
+                false,
               ),
-              SizedBox(height: 8),
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 5,
-                style: TextStyle(color: MainColor().textPrimary),
-                decoration: appInputDecoration('Detailed Description').copyWith(
-                  hintText: 'Provide detailed explanation of why you are appealing this violation...',
-                  alignLabelWithHint: true,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please provide a detailed description';
-                  }
-                  if (value.length < 50) {
-                    return 'Description must be at least 50 characters long';
-                  }
-                  return null;
-                },
+              SizedBox(height: 20),
+
+              // Supporting Documents
+              _buildFileUploadSection(
+                'Supporting Documents',
+                'Upload additional documents like affidavit, ID, etc. (optional)',
+                _supportingDocuments,
+                (files) => setState(() => _supportingDocuments = files),
+                true,
               ),
               SizedBox(height: 30),
 
@@ -258,10 +238,10 @@ class _AppealPageState extends State<AppealPage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      '• Appeals must be filed within 30 days of the violation\n'
                       '• Provide clear and factual information\n'
-                      '• Supporting documents may be required\n'
-                      '• Processing time is typically 5-10 business days',
+                      '• Supporting documents are recommended\n'
+                      '• Each file must be under 5MB\n'
+                      '• Maximum of 3 files per section',
                       style: TextStyle(
                         fontSize: FontSizes().caption,
                         color: MainColor().textPrimary.withOpacity(0.8),
@@ -319,6 +299,278 @@ class _AppealPageState extends State<AppealPage> {
     );
   }
 
+  Widget _buildFileUploadSection(
+    String title,
+    String description,
+    List<File> files,
+    Function(List<File>) onFilesChanged,
+    bool isOptional,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title + (isOptional ? ' (Optional)' : ' *'),
+          style: TextStyle(
+            fontSize: FontSizes().body,
+            fontWeight: FontWeight.w600,
+            color: MainColor().textPrimary,
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          description,
+          style: TextStyle(
+            fontSize: FontSizes().caption,
+            color: MainColor().textPrimary.withOpacity(0.7),
+          ),
+        ),
+        SizedBox(height: 12),
+        
+        // File upload area
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.white.withOpacity(0.3)),
+          ),
+          child: Column(
+            children: [
+              if (files.length < _maxFiles)
+                InkWell(
+                  onTap: () => _showFilePickerDialog(files, onFilesChanged),
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: MainColor().primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: MainColor().primary.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.cloud_upload,
+                          color: MainColor().primary,
+                          size: 40,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Tap to upload files',
+                          style: TextStyle(
+                            color: MainColor().primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          'Pictures, videos, or documents (Max 5MB each)',
+                          style: TextStyle(
+                            color: MainColor().textPrimary.withOpacity(0.6),
+                            fontSize: FontSizes().caption,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              
+              // Display uploaded files
+              if (files.isNotEmpty) ...[
+                SizedBox(height: 12),
+                ...files.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  File file = entry.value;
+                  String fileName = file.path.split('/').last;
+                  
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getFileIcon(fileName),
+                          color: Colors.green,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                fileName,
+                                style: TextStyle(
+                                  color: MainColor().textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              FutureBuilder<int>(
+                                future: file.length(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    double sizeInMB = snapshot.data! / (1024 * 1024);
+                                    return Text(
+                                      '${sizeInMB.toStringAsFixed(2)} MB',
+                                      style: TextStyle(
+                                        color: MainColor().textPrimary.withOpacity(0.6),
+                                        fontSize: FontSizes().caption,
+                                      ),
+                                    );
+                                  }
+                                  return SizedBox.shrink();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            List<File> updatedFiles = List.from(files);
+                            updatedFiles.removeAt(index);
+                            onFilesChanged(updatedFiles);
+                          },
+                          icon: Icon(Icons.close, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+              
+              if (files.length >= _maxFiles)
+                Container(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    'Maximum of $_maxFiles files reached',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontSize: FontSizes().caption,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getFileIcon(String fileName) {
+    String extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        return Icons.image;
+      case 'mp4':
+      case 'mov':
+      case 'avi':
+        return Icons.video_file;
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  void _showFilePickerDialog(List<File> currentFiles, Function(List<File>) onFilesChanged) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFile('camera', currentFiles, onFilesChanged);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFile('gallery', currentFiles, onFilesChanged);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.insert_drive_file),
+              title: Text('Choose Document'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFile('document', currentFiles, onFilesChanged);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickFile(String type, List<File> currentFiles, Function(List<File>) onFilesChanged) async {
+    try {
+      File? file;
+      
+      if (type == 'camera') {
+        final XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
+        if (pickedFile != null) file = File(pickedFile.path);
+      } else if (type == 'gallery') {
+        final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+        if (pickedFile != null) file = File(pickedFile.path);
+      } else {
+        // For documents, we'll use a simple approach for now
+        // TODO: Implement proper file picker when package is available
+        final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+        if (pickedFile != null) file = File(pickedFile.path);
+      }
+      
+      if (file != null) {
+        // Check file size
+        int fileSizeInBytes = await file.length();
+        double fileSizeInMB = fileSizeInBytes / (1024 * 1024);
+        
+        if (fileSizeInMB > _maxFileSizeMB) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('File size exceeds ${_maxFileSizeMB}MB limit'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+        
+        List<File> updatedFiles = List.from(currentFiles);
+        updatedFiles.add(file);
+        onFilesChanged(updatedFiles);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _submitAppeal() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -326,17 +578,38 @@ class _AppealPageState extends State<AppealPage> {
       });
 
       try {
-        // Simulate API call delay
-        await Future.delayed(Duration(seconds: 2));
+        // Verify violation exists first
+        bool violationExists = await _appealHandlers.verifyViolationExists(_trackingNumberController.text);
+        if (!violationExists) {
+          throw Exception('Violation with tracking number "${_trackingNumberController.text}" not found');
+        }
 
-        // TODO: Implement actual appeal submission logic here
-        // This would typically involve:
-        // 1. Creating an appeal model
-        // 2. Sending data to backend API
-        // 3. Storing in Firestore
-        // 4. Sending confirmation email
+        // Upload files
+        List<String> uploadedDocumentUrls = [];
+        List<String> supportingDocumentUrls = [];
+        
+        if (_uploadedDocuments.isNotEmpty) {
+          uploadedDocumentUrls = await _appealHandlers.uploadFiles(_uploadedDocuments);
+        }
+        
+        if (_supportingDocuments.isNotEmpty) {
+          supportingDocumentUrls = await _appealHandlers.uploadFiles(_supportingDocuments);
+        }
 
-        if (mounted) {
+        // Create appeal model
+        final appeal = AppealModel(
+          violationTrackingNumber: _trackingNumberController.text,
+          reasonForAppeal: _reasonController.text,
+          uploadedDocuments: uploadedDocumentUrls,
+          supportingDocuments: supportingDocumentUrls,
+          createdAt: DateTime.now(),
+          createdById: '', // Will be set in handlers
+        );
+
+        // Save appeal
+        String? appealId = await _appealHandlers.saveAppeal(appeal);
+        
+        if (appealId != null && mounted) {
           // Show success dialog
           showDialog(
             context: context,
@@ -351,7 +624,7 @@ class _AppealPageState extends State<AppealPage> {
                   ],
                 ),
                 content: Text(
-                  'Your appeal has been successfully submitted. You will receive a confirmation email and updates on the status of your appeal.',
+                  'Your appeal has been successfully submitted. You will receive updates on the status of your appeal.',
                 ),
                 actions: [
                   TextButton(
@@ -381,7 +654,7 @@ class _AppealPageState extends State<AppealPage> {
                   ],
                 ),
                 content: Text(
-                  'Failed to submit your appeal. Please check your internet connection and try again.',
+                  e.toString().replaceAll('Exception: ', ''),
                 ),
                 actions: [
                   TextButton(

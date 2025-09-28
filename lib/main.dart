@@ -6,6 +6,7 @@ import 'package:enforcer_auto_fine/pages/violation/index.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/pages/driver_registration/index.dart';
 import 'package:enforcer_auto_fine/pages/appeal/index.dart';
+import 'package:enforcer_auto_fine/pages/driver_appeals/index.dart';
 import 'routes.dart';
 
 
@@ -73,7 +74,6 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const HomePage(),
           '/profile': (context) => const Profile(),
           '/driver-registration': (context) => const DriverRegistrationPage(),
-          '/appeal': (context) => const AppealPage(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/violations') {
@@ -82,6 +82,21 @@ class MyApp extends StatelessWidget {
               builder: (context) {
                 return ViolationPage(initialData: initialData);
               },
+            );
+          }
+          
+          if (settings.name == '/appeal') {
+            final trackingNumber = settings.arguments as String?;
+            return MaterialPageRoute(
+              builder: (context) {
+                return AppealPage(prefilledTrackingNumber: trackingNumber);
+              },
+            );
+          }
+          
+          if (settings.name == '/driver-appeals') {
+            return MaterialPageRoute(
+              builder: (context) => const DriverAppealsPage(),
             );
           }
           

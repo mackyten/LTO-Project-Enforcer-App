@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enforcer_auto_fine/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../shared/app_theme/colors.dart';
 import '../../shared/app_theme/fonts.dart';
 import '../../shared/decorations/app_bg.dart';
@@ -314,7 +315,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
 
   Widget _buildViolationCard(ReportModel violation) {
     String primaryViolation = violation.violations.isNotEmpty
-        ? violation.violations.first
+        ? violation.violations.first.violationName
         : 'Traffic Violation';
 
     return Container(
@@ -488,14 +489,14 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: _getViolationColor(
-                              violation.violations.first,
+                              violation.violations.first.violationName,
                             ).withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            _getViolationIcon(violation.violations.first),
+                            _getViolationIcon(violation.violations.first.violationName),
                             color: _getViolationColor(
-                              violation.violations.first,
+                              violation.violations.first.violationName,
                             ),
                             size: 24,
                           ),
@@ -506,20 +507,47 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Traffic Violation Report',
-                                style: TextStyle(
-                                  fontSize: FontSizes().h3,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                              'Traffic Violation Report',
+                              style: TextStyle(
+                                fontSize: FontSizes().h3,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                              Text(
-                                violation.trackingNumber ??
+                              ),
+                              Row(
+                              children: [
+                                Expanded(
+                                child: Text(
+                                  violation.trackingNumber ??
                                     'No tracking number',
-                                style: TextStyle(
+                                  style: TextStyle(
                                   fontSize: FontSizes().body,
                                   color: Colors.white.withOpacity(0.7),
+                                  ),
                                 ),
+                                ),
+                                if (violation.trackingNumber != null)
+                                IconButton(
+                                  onPressed: () {
+                                  Clipboard.setData(ClipboardData(
+                                    text: violation.trackingNumber!,
+                                  ));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                    content: Text('Tracking number copied to clipboard'),
+                                    duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  },
+                                  icon: Icon(
+                                  Icons.copy,
+                                  color: Colors.white.withOpacity(0.7),
+                                  size: 18,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: BoxConstraints(),
+                                ),
+                              ],
                               ),
                             ],
                           ),
@@ -559,7 +587,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                         children: violation.violations
                             .map(
                               (v) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
+                                padding: const EdgeInsets.only(bottom: 8),
                                 child: Row(
                                   children: [
                                     Icon(
@@ -568,11 +596,50 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                                       color: Colors.white.withOpacity(0.6),
                                     ),
                                     SizedBox(width: 8),
-                                    Text(
-                                      v,
-                                      style: TextStyle(
-                                        fontSize: FontSizes().body,
-                                        color: Colors.white.withOpacity(0.8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            v.violationName,
+                                            style: TextStyle(
+                                              fontSize: FontSizes().body,
+                                              color: Colors.white.withOpacity(0.8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Fine: ₱${v.price.toStringAsFixed(2)}',
+                                                style: TextStyle(
+                                                  fontSize: FontSizes().caption,
+                                                  color: Colors.white.withOpacity(0.6),
+                                                ),
+                                              ),
+                                              SizedBox(width: 12),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: _getOffenseColor(v.repetition).withOpacity(0.2),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(
+                                                    color: _getOffenseColor(v.repetition).withOpacity(0.5),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  _getOrdinalNumber(v.repetition),
+                                                  style: TextStyle(
+                                                    fontSize: FontSizes().caption,
+                                                    color: _getOffenseColor(v.repetition).withOpacity(0.9),
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -589,7 +656,11 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          Navigator.pushNamed(context, '/appeal');
+                          Navigator.pushNamed(
+                            context, 
+                            '/appeal', 
+                            arguments: violation.trackingNumber,
+                          );
                         },
                         icon: Icon(Icons.gavel),
                         label: Text('File an Appeal'),
@@ -701,5 +772,41 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
   String _formatDate(DateTime? dateTime) {
     if (dateTime == null) return 'Unknown';
     return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+  }
+
+  String _getOrdinalNumber(int number) {
+    if (number <= 0) return '${number}th Offense';
+    
+    int lastDigit = number % 10;
+    int lastTwoDigits = number % 100;
+    
+    // Handle special cases for 11th, 12th, 13th
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+      return '${number}th Offense';
+    }
+    
+    // Handle regular cases
+    // Examples: 1st, 2nd, 3rd, 4th, 5th, 21st, 22nd, 23rd, 101st, 102nd, 103rd
+    switch (lastDigit) {
+      case 1:
+        return '${number}st Offense';
+      case 2:
+        return '${number}nd Offense';
+      case 3:
+        return '${number}rd Offense';
+      default:
+        return '${number}th Offense';
+    }
+  }
+
+  Color _getOffenseColor(int repetition) {
+    switch (repetition) {
+      case 1:
+        return Colors.green;    // 1st offense - Green
+      case 2:
+        return Colors.orange;   // 2nd offense - Warning/Orange
+      default:
+        return Colors.red;      // 3rd+ offenses - Red/Danger
+    }
   }
 }

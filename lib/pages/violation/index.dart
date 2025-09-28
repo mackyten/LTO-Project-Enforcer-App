@@ -6,6 +6,7 @@ import 'package:enforcer_auto_fine/pages/violation/components/navigation.dart';
 import 'package:enforcer_auto_fine/pages/violation/components/violation_item.dart';
 import 'package:enforcer_auto_fine/pages/violation/handlers.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
+import 'package:enforcer_auto_fine/pages/violation/models/violations_config.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/shared/components/image_picker/index.dart';
@@ -16,7 +17,7 @@ import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:enforcer_auto_fine/utils/shared_preferences.dart';
 import 'package:enforcer_auto_fine/utils/local_file_saver.dart';
-import 'package:enforcer_auto_fine/utils/tracking_no_generator.dart';
+import 'package:enforcer_auto_fine/utils/file_uploader.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +27,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../enums/folders.dart';
-import '../../utils/file_uploader.dart';
 import 'bloc/violation_bloc.dart';
 
 class ViolationPage extends StatefulWidget {
@@ -99,14 +99,26 @@ class _ViolationPageState extends State<ViolationPage>
       }
 
       if (widget.initialData?.violations != null) {
-        widget.initialData!.violations.forEach(
-          (item) => context.read<ViolationBloc>().add(
+        for (final violationModel in widget.initialData!.violations) {
+          // Find the corresponding violation key from the config
+          final violationKey = ViolationsConfig.definitions.entries
+              .firstWhere(
+                (entry) => entry.value.displayName == violationModel.violationName,
+                orElse: () => const MapEntry('other', ViolationDefinition(
+                  name: 'other',
+                  displayName: 'Other Violation',
+                  defaultPrice: 1000.0,
+                )),
+              )
+              .key;
+          
+          context.read<ViolationBloc>().add(
             UpdateViolationEvent(
-              key: item,
-              value: widget.initialData!.violations.contains(item),
+              key: violationKey,
+              value: true, // Set to true since this violation exists in the initial data
             ),
-          ),
-        );
+          );
+        }
       }
     }
   }
@@ -259,10 +271,7 @@ class _ViolationPageState extends State<ViolationPage>
         plateNumber: _plateController.text,
         platePhoto: plateUrl,
         evidencePhoto: evidenceUrl,
-        violations: homeBlocState.violations.entries
-            .where((entry) => entry.value)
-            .map((entry) => entry.key)
-            .toList(),
+        violations: ViolationsConfig.fromSelectedViolations(homeBlocState.violations),
       );
 
       trackingNumber = await handleSave(data);
@@ -331,10 +340,7 @@ class _ViolationPageState extends State<ViolationPage>
         platePhoto: plateUrl,
         evidencePhoto: evidenceUrl,
         draftId: uuid,
-        violations: homeBlocState.violations.entries
-            .where((entry) => entry.value)
-            .map((entry) => entry.key)
-            .toList(),
+        violations: ViolationsConfig.fromSelectedViolations(homeBlocState.violations),
         createdAt: DateTime.now(), // Add the creation timestamp here
       );
 
@@ -514,7 +520,7 @@ class _ViolationPageState extends State<ViolationPage>
                                       // Copy the tracking number to the clipboard
                                       if (trackingNumber != null) {
                                         Clipboard.setData(
-                                          ClipboardData(text: trackingNumber!),
+                                          ClipboardData(text: trackingNumber),
                                         );
 
                                         // Optional: Show a snackbar or toast to confirm the copy action

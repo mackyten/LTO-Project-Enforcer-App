@@ -47,8 +47,19 @@ class HomeHandlers {
     // Collect all violations from all documents
     for (var doc in allViolationsSnapshot.docs) {
       final data = doc.data();
-      final List<String> violations = List<String>.from(data['violations']);
-      allViolations.addAll(violations);
+      final List<dynamic> violationsData = data['violations'] as List<dynamic>;
+      
+      // Extract violation names from the ViolationModel objects
+      for (var violationData in violationsData) {
+        if (violationData is Map<String, dynamic>) {
+          // New format with ViolationModel
+          final violationName = violationData['violationName'] as String;
+          allViolations.add(violationName);
+        } else if (violationData is String) {
+          // Legacy format - just strings
+          allViolations.add(violationData);
+        }
+      }
     }
 
     // Count the frequency of each violation
@@ -140,11 +151,14 @@ class HomeHandlers {
         return response;
       }
       final userUUID = currentUser.uid;
-      final docRef = FirebaseFirestore.instance.collection('users').doc(userUUID);
-      final docSnapshot = await docRef.get();
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('uuid', isEqualTo: userUUID)
+          .limit(1)
+          .get();
 
-      if (docSnapshot.exists) {
-        var data = UserModelWithRoles.UserModel.fromJson(docSnapshot.data()!);
+      if (querySnapshot.docs.isNotEmpty) {
+        var data = UserModelWithRoles.UserModel.fromJson(querySnapshot.docs.first.data());
         response.data = data;
         response.success = true;
       } else {
@@ -171,17 +185,20 @@ class HomeHandlers {
       }
       
       final userUUID = currentUser.uid;
-      final docRef = FirebaseFirestore.instance.collection('users').doc(userUUID);
-      final docSnapshot = await docRef.get();
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('uuid', isEqualTo: userUUID)
+          .limit(1)
+          .get();
 
-      if (!docSnapshot.exists) {
+      if (querySnapshot.docs.isEmpty) {
         response.success = false;
         response.message = 'No user data found';
         return response;
       }
 
       // Get the raw data from Firestore
-      final rawData = docSnapshot.data()!;
+      final rawData = querySnapshot.docs.first.data();
       
       // Parse roles to determine user type
       final rolesList = rawData['roles'] as List<dynamic>?;

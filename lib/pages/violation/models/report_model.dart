@@ -1,5 +1,6 @@
 import 'package:enforcer_auto_fine/utils/tracking_no_generator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'violation_model.dart';
 
 class ReportModel {
   String fullname;
@@ -12,7 +13,7 @@ class ReportModel {
   String evidencePhoto;
   String? trackingNumber;
   String? createdById;
-  List<String> violations;
+  List<ViolationModel> violations;
   DateTime? createdAt;
   String? draftId;
 
@@ -44,7 +45,9 @@ class ReportModel {
       evidencePhoto: json['evidencePhoto'] as String,
       trackingNumber: json['trackingNumber'] as String?,
       createdById: json['createdById'] as String?,
-      violations: List<String>.from(json['violations'] as List),
+      violations: (json['violations'] as List)
+          .map((v) => ViolationModel.fromJson(v as Map<String, dynamic>))
+          .toList(),
       draftId: json['draftId'] as String?,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
@@ -64,7 +67,7 @@ class ReportModel {
       'licensePhoto': licensePhoto,
       'plateNumber': plateNumber,
       'platePhoto': platePhoto,
-      'violations': violations,
+      'violations': violations.map((v) => v.toJson()).toList(),
       'createdById': createdById,
       'evidencePhoto': evidencePhoto,
       'draftId': draftId,
