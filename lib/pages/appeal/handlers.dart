@@ -24,6 +24,50 @@ class AppealHandlers {
     }
   }
 
+  /// Check if violation is eligible for appeal based on its status
+  Future<void> validateViolationEligibility(String trackingNumber) async {
+    try {
+      final querySnapshot = await _db
+          .collection(Collections.reports.name)
+          .where('trackingNumber', isEqualTo: trackingNumber)
+          .limit(1)
+          .get();
+      
+      if (querySnapshot.docs.isEmpty) {
+        throw Exception('Violation with tracking number "$trackingNumber" not found');
+      }
+
+      // Check if violation status allows appeals
+      final violationData = querySnapshot.docs.first.data();
+      String status = violationData['status'] as String? ?? 'Submitted';
+      
+      // Do not allow appeals for these statuses
+      List<String> ineligibleStatuses = ['Overturned', 'Cancelled', 'Paid'];
+      
+      if (ineligibleStatuses.contains(status)) {
+        String reason = _getIneligibilityReason(status);
+        throw Exception('Cannot create appeal: $reason');
+      }
+    } catch (e) {
+      print('Error validating violation eligibility: $e');
+      rethrow;
+    }
+  }
+
+  /// Get user-friendly reason for appeal ineligibility
+  String _getIneligibilityReason(String status) {
+    switch (status) {
+      case 'Overturned':
+        return 'This violation has already been overturned';
+      case 'Cancelled':
+        return 'This violation has been cancelled';
+      case 'Paid':
+        return 'This violation has already been paid';
+      default:
+        return 'This violation is not eligible for appeal';
+    }
+  }
+
   /// Compress and upload files to Cloudinary
   Future<List<String>> uploadFiles(List<File> files) async {
     final List<String> uploadedUrls = [];
@@ -94,11 +138,14 @@ class AppealHandlers {
         throw Exception('User not authenticated');
       }
 
-      // Verify violation exists
+      // Verify violation exists and is eligible for appeal
       bool violationExists = await verifyViolationExists(appeal.violationTrackingNumber);
       if (!violationExists) {
         throw Exception('Violation with tracking number ${appeal.violationTrackingNumber} not found');
       }
+
+      // Check if violation is eligible for appeal based on status
+      await validateViolationEligibility(appeal.violationTrackingNumber);
 
       // Save to Firestore
       final docRef = await _db.collection('appeals').add(appeal.toJson());

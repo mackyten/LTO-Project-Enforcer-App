@@ -204,7 +204,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
     });
 
     try {
-      await signOut();
+      await signOut(context);
     } catch (e) {
       print("Sign out failed: $e");
       if (mounted) {

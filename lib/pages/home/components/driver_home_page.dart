@@ -155,7 +155,7 @@ class DriverHomePage extends StatelessWidget {
                   subtitle: 'Pay outstanding fines',
                   color: Colors.green,
                   onTap: () {
-                    // Navigate to payment
+                    Navigator.pushNamed(context, '/pay-fines');
                   },
                 ),
                 _buildQuickActionCard(

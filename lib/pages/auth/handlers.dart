@@ -1,5 +1,6 @@
 import 'package:enforcer_auto_fine/shared/models/response_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 Future<void> createUserWithEmailAndPassword(
   String email,
@@ -104,12 +105,21 @@ Future<ResponseModel<String>> reauthenticateAndChangePassword(
   return response;
 }
 
-Future<void> signOut() async {
+Future<void> signOut(BuildContext context) async {
   try {
     await Future.delayed(const Duration(seconds: 2));
     await FirebaseAuth.instance.signOut();
     // User is now signed out
     print("User signed out successfully.");
+    
+    // Navigate to sign-in page after successful sign-out
+    if (context.mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/', // Navigate to root which should be the auth/wrapper page
+        (route) => false, // Remove all previous routes
+      );
+    }
   } catch (e) {
     print("Error signing out: $e");
     // Handle any errors that might occur during sign out

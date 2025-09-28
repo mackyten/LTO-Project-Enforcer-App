@@ -227,7 +227,7 @@ class _RoleBasedSideDrawerState extends State<RoleBasedSideDrawer> {
     });
 
     try {
-      await signOut();
+      await signOut(context);
     } catch (e) {
       print("Sign out failed: $e");
     } finally {

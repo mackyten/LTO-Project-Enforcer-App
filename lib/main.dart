@@ -7,6 +7,9 @@ import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/pages/driver_registration/index.dart';
 import 'package:enforcer_auto_fine/pages/appeal/index.dart';
 import 'package:enforcer_auto_fine/pages/driver_appeals/index.dart';
+import 'package:enforcer_auto_fine/pages/pay_fines/index.dart';
+import 'package:enforcer_auto_fine/pages/payment_return/index.dart';
+
 import 'routes.dart';
 
 
@@ -74,6 +77,8 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const HomePage(),
           '/profile': (context) => const Profile(),
           '/driver-registration': (context) => const DriverRegistrationPage(),
+          '/pay-fines': (context) => const PayFinesPage(),
+          '/payment-return': (context) => const PaymentReturnPage(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/violations') {

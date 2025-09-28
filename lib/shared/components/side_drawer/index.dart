@@ -125,7 +125,7 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
 
                     try {
                       // Wait for the sign out operation to complete
-                      await signOut();
+                      await signOut(context);
 
                       // If sign out is successful, navigate to the login/landing page
                       // if (mounted) {

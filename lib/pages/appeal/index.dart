@@ -23,6 +23,7 @@ class _AppealPageState extends State<AppealPage> {
   final _reasonController = TextEditingController();
 
   bool _isSubmitting = false;
+  bool _showUploadValidationError = false;
   final AppealHandlers _appealHandlers = AppealHandlers();
   final ImagePicker _picker = ImagePicker();
 
@@ -192,8 +193,14 @@ class _AppealPageState extends State<AppealPage> {
                 'Upload Documents',
                 'Upload pictures, videos, or documents that support your appeal',
                 _uploadedDocuments,
-                (files) => setState(() => _uploadedDocuments = files),
+                (files) => setState(() {
+                  _uploadedDocuments = files;
+                  if (files.isNotEmpty) {
+                    _showUploadValidationError = false;
+                  }
+                }),
                 false,
+                showValidationError: _showUploadValidationError,
               ),
               SizedBox(height: 20),
 
@@ -304,8 +311,9 @@ class _AppealPageState extends State<AppealPage> {
     String description,
     List<File> files,
     Function(List<File>) onFilesChanged,
-    bool isOptional,
-  ) {
+    bool isOptional, {
+    bool showValidationError = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -334,7 +342,12 @@ class _AppealPageState extends State<AppealPage> {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+            border: Border.all(
+              color: showValidationError && !isOptional && files.isEmpty
+                  ? Colors.red
+                  : Colors.white.withOpacity(0.3),
+              width: showValidationError && !isOptional && files.isEmpty ? 2 : 1,
+            ),
           ),
           child: Column(
             children: [
@@ -458,6 +471,19 @@ class _AppealPageState extends State<AppealPage> {
             ],
           ),
         ),
+        
+        // Validation error message
+        if (showValidationError && !isOptional && files.isEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Please upload at least one document',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: FontSizes().caption,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -573,6 +599,20 @@ class _AppealPageState extends State<AppealPage> {
 
   void _submitAppeal() async {
     if (_formKey.currentState!.validate()) {
+      // Check if required uploaded documents are provided
+      if (_uploadedDocuments.isEmpty) {
+        setState(() {
+          _showUploadValidationError = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please upload at least one supporting document'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       setState(() {
         _isSubmitting = true;
       });
@@ -583,6 +623,9 @@ class _AppealPageState extends State<AppealPage> {
         if (!violationExists) {
           throw Exception('Violation with tracking number "${_trackingNumberController.text}" not found');
         }
+
+        // Check if violation is eligible for appeal
+        await _appealHandlers.validateViolationEligibility(_trackingNumberController.text);
 
         // Upload files
         List<String> uploadedDocumentUrls = [];

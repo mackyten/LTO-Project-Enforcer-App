@@ -16,6 +16,8 @@ class ReportModel {
   List<ViolationModel> violations;
   DateTime? createdAt;
   String? draftId;
+  String status; // "Overturned" | "Submitted" | "Cancelled" | "Paid"
+  String paymentStatus; // "Pending" | "Completed" | "Refunded" | "Cancelled"
 
   ReportModel({
     required this.fullname,
@@ -30,7 +32,9 @@ class ReportModel {
     required this.violations,
     required this.evidencePhoto,
     this.createdAt,
-    this.draftId
+    this.draftId,
+    this.status = "Submitted",
+    this.paymentStatus = "Pending",
   });
 
   factory ReportModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +56,8 @@ class ReportModel {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime(0),
+      status: json['status'] as String? ?? "Submitted",
+      paymentStatus: json['paymentStatus'] as String? ?? "Pending",
     );
   }
 
@@ -73,6 +79,8 @@ class ReportModel {
       'draftId': draftId,
       'trackingNumber': createAlphanumericTrackingNumber(),
       'createdAt': DateTime.now().toIso8601String(),
+      'status': status,
+      'paymentStatus': paymentStatus,
     };
   }
 }

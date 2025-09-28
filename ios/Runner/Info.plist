@@ -49,5 +49,16 @@
 	<string>This app needs camera access to capture violation evidence</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photo library access to select images</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>lto-enforcer</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>lto-enforcer</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
