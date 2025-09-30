@@ -398,36 +398,41 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.orange.withOpacity(0.5),
+                          Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(violation.status).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _getStatusColor(violation.status).withOpacity(0.5),
+                                ),
+                              ),
+                              child: Text(
+                                violation.status.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: FontSizes().caption,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getStatusColor(violation.status),
+                                ),
                               ),
                             ),
-                            child: Text(
-                              'PENDING',
+                            SizedBox(height: 8),
+                            Text(
+                              violation.trackingNumber ?? 'N/A',
                               style: TextStyle(
                                 fontSize: FontSizes().caption,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange,
+                                color: Colors.white.withOpacity(0.7),
                               ),
                             ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            violation.trackingNumber ?? 'N/A',
-                            style: TextStyle(
-                              fontSize: FontSizes().caption,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white.withOpacity(0.7),
-                            ),
-                          ),
+                          ],
+                        ),
                         ],
                       ),
                     ],
@@ -556,6 +561,9 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                     ),
                     SizedBox(height: 24),
                     _buildDetailRow('Driver Name', violation.fullname),
+                    // Show payment reference if status is Paid
+                    if (violation.status == 'Paid' && violation.paymentReferenceId != null)
+                      _buildDetailRow('Payment Reference', violation.paymentReferenceId!),
                     _buildDetailRow('Address', violation.address),
                     _buildDetailRow('Phone Number', violation.phoneNumber),
                     _buildDetailRow('License Number', violation.licenseNumber),
@@ -807,6 +815,21 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
         return Colors.orange;   // 2nd offense - Warning/Orange
       default:
         return Colors.red;      // 3rd+ offenses - Red/Danger
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Paid':
+        return Colors.green;
+      case 'Overturned':
+        return Colors.blue;
+      case 'Submitted':
+        return Colors.purple;
+      case 'Cancelled':
+        return Colors.grey;
+      default:
+        return Colors.orange; // For Pending or other statuses
     }
   }
 }

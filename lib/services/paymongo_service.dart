@@ -177,7 +177,7 @@ class PayMongoService {
               'currency': currency,
               'redirect': {
                 'success': "https://lingayen-lto.web.app/success-payment?source_id=$internalId",
-                'failed': "https://lingayen-lto.web.app/failed-payment",
+                'failed': "https://lingayen-lto.web.app/failed-payment?source_id=$internalId",
               },
               'billing': billing,
             },

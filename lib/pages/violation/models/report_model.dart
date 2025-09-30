@@ -16,6 +16,7 @@ class ReportModel {
   List<ViolationModel> violations;
   DateTime? createdAt;
   String? draftId;
+  String? paymentReferenceId;
   String status; // "Overturned" | "Submitted" | "Cancelled" | "Paid"
   String paymentStatus; // "Pending" | "Completed" | "Refunded" | "Cancelled"
 
@@ -33,6 +34,7 @@ class ReportModel {
     required this.evidencePhoto,
     this.createdAt,
     this.draftId,
+    this.paymentReferenceId,
     this.status = "Submitted",
     this.paymentStatus = "Pending",
   });
@@ -49,6 +51,7 @@ class ReportModel {
       evidencePhoto: json['evidencePhoto'] as String,
       trackingNumber: json['trackingNumber'] as String?,
       createdById: json['createdById'] as String?,
+      paymentReferenceId: json['paymentReferenceId'] as String?,
       violations: (json['violations'] as List)
           .map((v) => ViolationModel.fromJson(v as Map<String, dynamic>))
           .toList(),

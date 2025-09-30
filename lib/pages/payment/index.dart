@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+import 'dart:math';
 import '../../shared/app_theme/colors.dart';
 import '../../shared/app_theme/fonts.dart';
 import '../../shared/decorations/app_bg.dart';
@@ -458,7 +458,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
     try {
       Map<String, dynamic>? result;
-      final internalId = Uuid().v4();
+      final internalId = _generateShortUniqueId();
 
       switch (_selectedPaymentMethod) {
         case 'gcash':
@@ -563,5 +563,23 @@ class _PaymentPageState extends State<PaymentPage> {
         ],
       ),
     );
+  }
+
+  /// Generate a shorter but unique ID using timestamp + random characters
+  String _generateShortUniqueId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    
+    // Get last 6 digits of timestamp for uniqueness
+    final timestampSuffix = (timestamp % 1000000).toString().padLeft(6, '0');
+    
+    // Generate 4 random characters
+    final randomChars = String.fromCharCodes(Iterable.generate(
+      4, (_) => chars.codeUnitAt(random.nextInt(chars.length))
+    ));
+    
+    // Format: LTO-XXXXXX-YYYY (14 characters total)
+    return 'LTO-$timestampSuffix-$randomChars';
   }
 }
