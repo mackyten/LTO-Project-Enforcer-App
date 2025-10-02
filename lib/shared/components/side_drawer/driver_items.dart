@@ -27,7 +27,7 @@ class DriverSideDrawerItem {
     DriverSideDrawerItem(
       title: "Pay Fines",
       icon: Icon(Icons.payment),
-      route: '/driver-payments',
+      route: '/pay-fines',
     ),
   ];
 }

@@ -103,7 +103,6 @@ class DriverHomePage extends StatelessWidget {
                 color: MainColor().textPrimary,
               ),
             ),
-            SizedBox(height: 15),
 
             GridView.count(
               shrinkWrap: true,

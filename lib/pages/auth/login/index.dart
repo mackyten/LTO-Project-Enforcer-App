@@ -1,8 +1,10 @@
-import 'package:enforcer_auto_fine/pages/auth/handlers.dart';
 import 'package:enforcer_auto_fine/pages/auth/login/components/poligon_clipper.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/app_input_border.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../enums/user_roles.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
 
   bool isLoggingIn = false;
+  String? errorMessage;
 
   // @override
   // void initState() {
@@ -28,6 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
           Container(
@@ -105,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
             width: screenSize.width,
             height: screenSize.height,
             child: Center(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -137,6 +141,28 @@ class _LoginPageState extends State<LoginPage> {
 
                     SizedBox(height: 48),
 
+                    // Error message display
+                    if (errorMessage != null) ...[
+                      Container(
+                        width: (screenSize.width * .75),
+                        padding: EdgeInsets.all(12),
+                        margin: EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          errorMessage!,
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+
                     SizedBox(
                       width: (screenSize.width * .75),
                       child: ElevatedButton(
@@ -147,14 +173,29 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         onPressed: isLoggingIn
                             ? null
-                            : () {
+                            : () async {
                                 setState(() {
                                   isLoggingIn = true;
+                                  errorMessage = null; // Clear previous error
                                 });
-                                signInWithEmailAndPassword(
-                                  _emailController.text,
-                                  _passwordController.text,
-                                );
+                                
+                                try {
+                                  await _performSignIn(_emailController.text.trim(), _passwordController.text);
+                                  // Sign-in successful - the wrapper will handle navigation
+                                } on FirebaseAuthException catch (e) {
+                                  // Handle Firebase auth specific errors
+                                  String message = _getFirebaseAuthErrorMessage(e);
+                                  setState(() {
+                                    errorMessage = message;
+                                    isLoggingIn = false;
+                                  });
+                                } catch (e) {
+                                  // Handle other errors
+                                  setState(() {
+                                    errorMessage = e.toString().replaceAll('Exception: ', '');
+                                    isLoggingIn = false;
+                                  });
+                                }
                               },
                         child: isLoggingIn
                             ? SizedBox(
@@ -194,5 +235,95 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     );
+  }
+
+  /// Enhanced sign-in method that handles temporary passwords for Enforcers
+  Future<void> _performSignIn(String email, String password) async {
+    try {
+      // Try normal Firebase Auth sign-in first
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      // If auth fails with invalid-credential, check for temporary password
+      if (e.code == 'user-not-found') {
+        print('User not found in Firebase Auth, checking Firestore...');
+        
+        // Check Firestore for temporary password
+        final usersRef = FirebaseFirestore.instance.collection('users');
+        final query = usersRef.where('email', isEqualTo: email);
+        final snapshot = await query.get();
+
+        if (snapshot.docs.isNotEmpty) {
+          final userDoc = snapshot.docs.first;
+          final userData = userDoc.data();
+
+          // Check if user is an Enforcer with null uuid
+          final roles = userData['roles'] as List<dynamic>? ?? [];
+          final uuid = userData['uuid'];
+          final temporaryPassword = userData['temporaryPassword'];
+
+          // Validate conditions: uuid is null, roles contains only Enforcer, temp password matches
+          if (uuid == null && 
+              roles.length == 1 && 
+              roles.contains(UserRoles.Enforcer.index) &&
+              temporaryPassword == password) {
+            
+            // Create Firebase Auth account
+            final newUserCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+              email: email,
+              password: password,
+            );
+            final newUuid = newUserCredential.user?.uid;
+            
+            if (newUuid == null) {
+              throw Exception('Failed to create user account');
+            }
+
+            // Update Firestore document
+            await userDoc.reference.update({
+              'uuid': newUuid,
+              'temporaryPassword': FieldValue.delete(),
+              'roles': [UserRoles.None.index, UserRoles.Enforcer.index],
+            });
+
+            print('Successfully created account for Enforcer: $email');
+            return; // Success, let wrapper handle navigation
+          } else {
+            // Conditions not met, throw original error
+            throw Exception('Invalid credentials or account not properly configured');
+          }
+        } else {
+          // No user found in Firestore, throw original error
+          throw Exception('No account found with this email address');
+        }
+      } else {
+        // Other auth errors, rethrow
+        throw e;
+      }
+    }
+  }
+
+  /// Get user-friendly error messages for Firebase Auth errors
+  String _getFirebaseAuthErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No account found with this email address';
+      case 'wrong-password':
+        return 'Incorrect password';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'too-many-requests':
+        return 'Too many login attempts. Please try again later';
+      case 'email-already-in-use':
+        return 'An account with this email already exists';
+      case 'weak-password':
+        return 'Password is too weak';
+      default:
+        return e.message ?? 'Login failed';
+    }
   }
 }

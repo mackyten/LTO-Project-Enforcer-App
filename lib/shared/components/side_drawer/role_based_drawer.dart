@@ -49,11 +49,48 @@ class _RoleBasedSideDrawerState extends State<RoleBasedSideDrawer> {
                   leading: item.icon,
                   title: Text(item.title),
                   onTap: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      item.route,
-                      (Route<dynamic> route) => false,
-                    );
+                    //Navigator.pop(context); // Close drawer first
+
+                    // Handle special routes that need arguments
+                    if (item.route == '/driver-violations') {
+                      // Get the driver's plate number from the current state
+                      if (state.driverData != null) {
+                        final plateNumber = state.driverData!.plateNumber;
+                        if (plateNumber != null && plateNumber.isNotEmpty) {
+                          Navigator.pushNamed(
+                            context,
+                            '/driver-violations',
+                            arguments: plateNumber,
+                          );
+                          // Navigator.pushNamedAndRemoveUntil(
+                          //   context,
+                          //   '/driver-violations',
+                          //   (Route<dynamic> route) => false,
+                          //   arguments: plateNumber,
+                          // );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Plate number not found. Please update your profile.',
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    } else {
+                      if (item.route == "/pay-fines") {
+                        Navigator.pushNamed(context, item.route);
+                      } else {
+                        // For other routes, use the normal navigation
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          item.route,
+                          (Route<dynamic> route) => false,
+                        );
+                      }
+                    }
                   },
                 );
               }).toList();
@@ -109,10 +146,12 @@ class _RoleBasedSideDrawerState extends State<RoleBasedSideDrawer> {
                             CircleAvatar(
                               radius: 30,
                               backgroundImage:
-                                  userData?.profilePictureUrl?.isNotEmpty == true
+                                  userData?.profilePictureUrl?.isNotEmpty ==
+                                      true
                                   ? NetworkImage(userData!.profilePictureUrl!)
                                   : null,
-                              child: userData?.profilePictureUrl?.isEmpty ?? true
+                              child:
+                                  userData?.profilePictureUrl?.isEmpty ?? true
                                   ? Icon(Icons.account_circle, size: 50)
                                   : null,
                             ),

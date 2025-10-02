@@ -1,3 +1,4 @@
+import 'package:enforcer_auto_fine/pages/driver_violations/index.dart';
 import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/pages/home/index.dart';
 import 'package:enforcer_auto_fine/pages/profile/index.dart';
@@ -11,7 +12,6 @@ import 'package:enforcer_auto_fine/pages/pay_fines/index.dart';
 import 'package:enforcer_auto_fine/pages/payment_return/index.dart';
 
 import 'routes.dart';
-
 
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/wrapper.dart';
@@ -79,6 +79,9 @@ class MyApp extends StatelessWidget {
           '/driver-registration': (context) => const DriverRegistrationPage(),
           '/pay-fines': (context) => const PayFinesPage(),
           '/payment-return': (context) => const PaymentReturnPage(),
+        
+          '/driver-appeals': (context) =>
+              const DriverAppealsPage(), // Add this too
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/violations') {
@@ -89,7 +92,7 @@ class MyApp extends StatelessWidget {
               },
             );
           }
-          
+
           if (settings.name == '/appeal') {
             final trackingNumber = settings.arguments as String?;
             return MaterialPageRoute(
@@ -98,19 +101,29 @@ class MyApp extends StatelessWidget {
               },
             );
           }
-          
+
           if (settings.name == '/driver-appeals') {
             return MaterialPageRoute(
               builder: (context) => const DriverAppealsPage(),
             );
           }
-          
+
           // Try external routes for driver violations
           final externalRoute = AppRoutes.onGenerateRoute(settings);
           if (externalRoute != null) {
             return externalRoute;
           }
-          
+
+          if (settings.name == '/driver-violations') {
+            final plateNumber = settings.arguments as String?;
+            if (plateNumber != null) {
+              return MaterialPageRoute(
+                builder: (context) =>
+                    DriverViolationsPage(plateNumber: plateNumber),
+              );
+            }
+          }
+
           // Handle other routes
           return null;
         },
