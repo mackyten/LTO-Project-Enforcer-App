@@ -9,7 +9,7 @@ class AppealModel {
   final List<String> supportingDocuments;
   final DateTime createdAt;
   String createdById;
-  final String status; // pending, approved, rejected
+  final String status; // Pending, Approved, Rejected
 
   AppealModel({
     this.id,
@@ -19,7 +19,7 @@ class AppealModel {
     required this.supportingDocuments,
     required this.createdAt,
     required this.createdById,
-    this.status = 'pending',
+    this.status = 'Pending',
   });
 
   factory AppealModel.fromJson(Map<String, dynamic> json) {
@@ -33,7 +33,7 @@ class AppealModel {
       ),
       createdAt: (json['createdAt'] as Timestamp).toDate(),
       createdById: json['createdById'] as String,
-      status: json['status'] as String? ?? 'pending',
+      status: json['status'] as String? ?? 'Pending',
     );
   }
 

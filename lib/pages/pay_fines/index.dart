@@ -729,40 +729,40 @@ class _PayFinesPageState extends State<PayFinesPage> {
   }
 
   /// Handle successful payment return
-  Future<void> handlePaymentReturn(String sourceId, {String? paymentId}) async {
-    try {
-      // Get transaction details
-      final transactionDetails = await PaymentHandler.getTransactionDetails(
-        sourceId,
-      );
+  // Future<void> handlePaymentReturn(String sourceId, {String? paymentId}) async {
+  //   try {
+  //     // Get transaction details
+  //     final transactionDetails = await PaymentHandler.getTransactionDetails(
+  //       sourceId,
+  //     );
 
-      if (transactionDetails != null && transactionDetails['success']) {
-        // Update violation status to Paid
-        await _updateViolationStatus(
-          trackingNumber: _foundReport!.trackingNumber!,
-          paymentDetails: transactionDetails,
-        );
+  //     if (transactionDetails != null && transactionDetails['success']) {
+  //       // Update violation status to Paid
+  //       await _updateViolationStatus(
+  //         trackingNumber: _foundReport!.trackingNumber!,
+  //         paymentDetails: transactionDetails,
+  //       );
 
-        // Update pending payment to completed
-        await _db.collection('pending_payments').doc(sourceId).update({
-          'status': 'completed',
-          'payment_id': transactionDetails['payment_id'],
-          'external_reference': transactionDetails['external_reference'],
-          'completed_at': FieldValue.serverTimestamp(),
-          'transactionDetails': transactionDetails,
-        });
+  //       // Update pending payment to completed
+  //       await _db.collection('pending_payments').doc(sourceId).update({
+  //         'status': 'completed',
+  //         'payment_id': transactionDetails['payment_id'],
+  //         'external_reference': transactionDetails['external_reference'],
+  //         'completed_at': FieldValue.serverTimestamp(),
+  //         'transactionDetails': transactionDetails,
+  //       });
 
-        // Show success message
-        _showPaymentSuccessDialog(transactionDetails);
-      } else {
-        // Payment failed or pending
-        _showPaymentFailedDialog();
-      }
-    } catch (e) {
-      print('Error handling payment return: $e');
-      _showErrorDialog('Error', 'Failed to process payment result: $e');
-    }
-  }
+  //       // Show success message
+  //       _showPaymentSuccessDialog(transactionDetails);
+  //     } else {
+  //       // Payment failed or pending
+  //       _showPaymentFailedDialog();
+  //     }
+  //   } catch (e) {
+  //     print('Error handling payment return: $e');
+  //     _showErrorDialog('Error', 'Failed to process payment result: $e');
+  //   }
+  // }
 
   /// Update violation status in Firebase
   Future<void> _updateViolationStatus({

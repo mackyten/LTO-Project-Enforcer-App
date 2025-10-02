@@ -17,12 +17,12 @@ class _LoginPageState extends State<LoginPage> {
 
   bool isLoggingIn = false;
 
-  @override
-  void initState() {
-    _emailController.text = "testuser@mailinator.com";
-    _passwordController.text = "P@ssword1";
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   _emailController.text = "testuser@mailinator.com";
+  //   _passwordController.text = "P@ssword1";
+  //   super.initState();
+  // }
 
   @override
   Widget build(BuildContext context) {

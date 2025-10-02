@@ -81,7 +81,7 @@ class PaymentHandler {
         } else {
           return {
             'success': false,
-            'status': 'pending',
+            'status': 'Pending',
             'source_id': sourceId,
           };
         }

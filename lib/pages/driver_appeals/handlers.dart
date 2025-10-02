@@ -57,9 +57,9 @@ class DriverAppealsHandlers {
         .get();
 
     Map<String, int> statusCounts = {
-      'pending': 0,
-      'approved': 0,
-      'rejected': 0,
+      'Pending': 0,
+      'Approved': 0,
+      'Rejected': 0,
     };
 
     for (var doc in appealsSnapshot.docs) {
@@ -89,7 +89,7 @@ class DriverAppealsHandlers {
     }
 
     // Only allow deletion if status is pending
-    if (appeal.status != 'pending') {
+    if (appeal.status != 'Pending') {
       throw Exception('Can only delete pending appeals');
     }
 

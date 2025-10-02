@@ -26,9 +26,9 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
   final int _pageSize = 10;
   
   Map<String, int> _statusCounts = {
-    'pending': 0,
-    'approved': 0,
-    'rejected': 0,
+    'Pending': 0,
+    'Approved': 0,
+    'Rejected': 0,
   };
 
   @override
