@@ -18,6 +18,7 @@ import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:enforcer_auto_fine/utils/shared_preferences.dart';
 import 'package:enforcer_auto_fine/utils/local_file_saver.dart';
 import 'package:enforcer_auto_fine/utils/file_uploader.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -180,7 +181,16 @@ class _ViolationPageState extends State<ViolationPage>
       case 0:
         return step1Key.currentState?.validate() ?? false;
       case 1:
-        return step2Key.currentState?.validate() ?? false;
+        // Validate form fields first
+        bool formValid = step2Key.currentState?.validate() ?? false;
+        if (!formValid) return false;
+        
+        // Check if plate photo is uploaded (required)
+        if (platePhoto == null) {
+          showAlert(context, 'Required', 'Please upload plate photo.');
+          return false;
+        }
+        return true;
       case 2:
         if (homeBlocState is HomeLoaded) {
           if (!homeBlocState.violations.values.any((selected) => selected)) {
@@ -263,12 +273,12 @@ class _ViolationPageState extends State<ViolationPage>
       }
 
       final data = ReportModel(
-        fullname: _fullnameController.text,
-        address: _addressController.text,
-        phoneNumber: _phoneController.text,
-        licenseNumber: _licenseController.text,
+        fullname: _fullnameController.text.trim(),
+        address: _addressController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        licenseNumber: _licenseController.text.trim(),
         licensePhoto: licenseUrl,
-        plateNumber: _plateController.text,
+        plateNumber: _plateController.text.trim(),
         platePhoto: plateUrl,
         evidencePhoto: evidenceUrl,
         violations: ViolationsConfig.fromSelectedViolations(homeBlocState.violations),
@@ -284,8 +294,11 @@ class _ViolationPageState extends State<ViolationPage>
       }
 
       if (widget.initialData != null && widget.initialData?.draftId != null) {
-        final draftKey = 'draft_${widget.initialData!.draftId!}';
-        deletePreference(draftKey);
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          final draftKey = 'draft_${currentUser.uid}_${widget.initialData!.draftId!}';
+          deletePreference(draftKey);
+        }
       }
 
       setState(() {
@@ -331,12 +344,12 @@ class _ViolationPageState extends State<ViolationPage>
     if (homeBlocState is HomeLoaded) {
       // Instantiate the ReportModel with the createdAt timestamp
       final report = ReportModel(
-        fullname: _fullnameController.text,
-        address: _addressController.text,
-        phoneNumber: _phoneController.text,
-        licenseNumber: _licenseController.text,
+        fullname: _fullnameController.text.trim(),
+        address: _addressController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        licenseNumber: _licenseController.text.trim(),
         licensePhoto: licenseUrl,
-        plateNumber: _plateController.text,
+        plateNumber: _plateController.text.trim(),
         platePhoto: plateUrl,
         evidencePhoto: evidenceUrl,
         draftId: uuid,
@@ -345,37 +358,51 @@ class _ViolationPageState extends State<ViolationPage>
       );
 
       final hasData =
-          report.fullname.isNotEmpty ||
-          report.address.isNotEmpty ||
-          report.phoneNumber.isNotEmpty ||
-          report.licenseNumber.isNotEmpty ||
-          (report.licensePhoto.isNotEmpty) ||
-          (report.platePhoto.isNotEmpty) ||
-          (report.evidencePhoto.isNotEmpty) ||
+          report.fullname.trim().isNotEmpty ||
+          report.address.trim().isNotEmpty ||
+          report.phoneNumber.trim().isNotEmpty ||
+          report.licenseNumber.trim().isNotEmpty ||
+          (report.licensePhoto.trim().isNotEmpty) ||
+          (report.platePhoto.trim().isNotEmpty) ||
+          (report.evidencePhoto.trim().isNotEmpty) ||
           report.violations.isNotEmpty;
 
       if (hasData) {
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser == null) {
+          print('No authenticated user found, cannot save draft');
+          return;
+        }
+        
+        final userUUID = currentUser.uid;
+        
         if (widget.initialData != null) {
-          deletePreference("draft_${widget.initialData!.draftId}");
+          deletePreference("draft_${userUUID}_${widget.initialData!.draftId}");
         }
         final prefs = await SharedPreferences.getInstance();
         final allKeys = prefs.getKeys();
         final draftKeys = allKeys
-            .where((key) => key.startsWith('draft_'))
+            .where((key) => key.startsWith('draft_${userUUID}_'))
             .toList();
 
         const int maxDrafts = 30;
 
         // Remove the earliest draft if the limit is exceeded
         if (draftKeys.length >= maxDrafts) {
-          // 1. Retrieve all existing drafts
+          // 1. Retrieve all existing drafts for this user
           final List<ReportModel> allDrafts = [];
           for (var key in draftKeys) {
             final reportJsonString = prefs.getString(key);
             if (reportJsonString != null) {
-              final reportMap =
-                  jsonDecode(reportJsonString) as Map<String, dynamic>;
-              allDrafts.add(ReportModel.fromJson(reportMap));
+              try {
+                final reportMap =
+                    jsonDecode(reportJsonString) as Map<String, dynamic>;
+                allDrafts.add(ReportModel.fromJson(reportMap));
+              } catch (e) {
+                print('Error loading draft $key: $e');
+                // Remove corrupted draft
+                await prefs.remove(key);
+              }
             }
           }
 
@@ -399,8 +426,8 @@ class _ViolationPageState extends State<ViolationPage>
           }
         }
 
-        // Save the new draft
-        final newDraftKey = 'draft_$uuid';
+        // Save the new draft with user identifier
+        final newDraftKey = 'draft_${userUUID}_$uuid';
         final reportJson = jsonEncode(report.toJson());
         await prefs.setString(newDraftKey, reportJson);
         print('Report draft saved with key: $newDraftKey');
@@ -570,41 +597,85 @@ class _ViolationPageState extends State<ViolationPage>
     return Form(
       key: step1Key,
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(30),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Violator\'s Information',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
+            // Header Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.person, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Violator\'s Information',
+                    style: TextStyle(
+                      fontSize: FontSizes().body,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
+
+            // Form Fields
             AppTextField(
               controller: _fullnameController,
               label: 'Full Name',
               placeholder: 'Enter full name',
               required: true,
             ),
-            SizedBox(height: 25),
+            SizedBox(height: 20),
             AppTextField(
               controller: _addressController,
               label: 'Complete Address',
               placeholder: 'Street, City, State, ZIP Code',
               required: true,
-              maxLines: 4,
+              maxLines: 3,
             ),
-            SizedBox(height: 25),
+            SizedBox(height: 20),
             AppTextField(
               controller: _phoneController,
               label: 'Phone Number',
               placeholder: '(123) 456-7890',
               required: true,
               keyboardType: TextInputType.phone,
+            ),
+            SizedBox(height: 20),
+
+            // Info Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Ensure all information is accurate as it will be used for official documentation.',
+                      style: TextStyle(
+                        fontSize: FontSizes().caption,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -616,53 +687,158 @@ class _ViolationPageState extends State<ViolationPage>
     return Form(
       key: step2Key,
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(30),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'License and Plate Information',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.3,
+            // Header Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.assignment, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'License & Vehicle Information',
+                    style: TextStyle(
+                      fontSize: FontSizes().body,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 30),
-            AppTextField(
-              controller: _licenseController,
-              label: 'License Number',
-              placeholder: 'Enter license number',
-              required: true,
-            ),
-            SizedBox(height: 25),
-            AppTextFieldLabel(label: "License Photo", required: true),
-            SizedBox(height: 10),
-            AppImagePicker(
-              image: licensePhoto,
-              onTap: () => _pickImage(StorageFolders.licensePhotos),
-              icon: '📷',
-              text: 'Tap to upload license photo',
-              subtext: 'JPG, PNG up to 10MB',
+            SizedBox(height: 20),
+
+            // License Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.badge, color: Colors.orange, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Driver\'s License',
+                        style: TextStyle(
+                          fontSize: FontSizes().body,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  AppTextField(
+                    controller: _licenseController,
+                    label: 'License Number',
+                    placeholder: 'Enter license number',
+                    required: false,
+                  ),
+                  SizedBox(height: 16),
+                  AppTextFieldLabel(label: "License Photo", required: false),
+                  SizedBox(height: 8),
+                  AppImagePicker(
+                    image: licensePhoto,
+                    onTap: () => _pickImage(StorageFolders.licensePhotos),
+                    icon: '📷',
+                    text: 'Tap to upload license photo',
+                    subtext: 'Clear photo of the driver\'s license',
+                  ),
+                ],
+              ),
             ),
 
-            SizedBox(height: 30),
-            AppTextField(
-              controller: _plateController,
-              label: 'plate Number',
-              placeholder: 'Enter plate number',
-              required: true,
+            SizedBox(height: 20),
+
+            // Vehicle Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.directions_car, color: Colors.green, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Vehicle Information',
+                        style: TextStyle(
+                          fontSize: FontSizes().body,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  AppTextField(
+                    controller: _plateController,
+                    label: 'Plate Number',
+                    placeholder: 'Enter plate number',
+                    required: true,
+                  ),
+                  SizedBox(height: 16),
+                  AppTextFieldLabel(label: "Plate Photo", required: true),
+                  SizedBox(height: 8),
+                  AppImagePicker(
+                    image: platePhoto,
+                    onTap: () => _pickImage(StorageFolders.platePhotos),
+                    icon: '📷',
+                    text: 'Tap to upload plate photo',
+                    subtext: 'Clear photo of the vehicle plate',
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 25),
-            AppTextFieldLabel(label: "Plate Photo", required: true),
-            SizedBox(height: 10),
-            AppImagePicker(
-              image: platePhoto,
-              onTap: () => _pickImage(StorageFolders.platePhotos),
-              icon: '📷',
-              text: 'Tap to upload license photo',
-              subtext: 'JPG, PNG up to 10MB',
+
+            SizedBox(height: 20),
+
+            // Info Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.camera_alt, color: Colors.amber, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Take clear, readable photos for accurate identification and processing.',
+                      style: TextStyle(
+                        fontSize: FontSizes().caption,
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -672,81 +848,275 @@ class _ViolationPageState extends State<ViolationPage>
 
   Widget _buildStep3() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(30),
+      padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Rules Violated',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
+          // Header Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.gavel, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Traffic Violations',
+                  style: TextStyle(
+                    fontSize: FontSizes().body,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 30),
-          AppTextFieldLabel(label: "Select all that apply:", required: true),
-          SizedBox(height: 15),
-          ViolationItem(label: '🚗 Speeding', item: 'speeding'),
-          ViolationItem(label: '🚫 Illegal Parking', item: 'illegal-parking'),
-          ViolationItem(
-            label: '🚦 Running Traffic Light',
-            item: 'traffic-light',
+          SizedBox(height: 20),
+
+          // Violations Grid
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppTextFieldLabel(label: "Select all that apply:", required: true),
+                SizedBox(height: 16),
+                ViolationItem(label: '🚗 Speeding', item: 'speeding'),
+                SizedBox(height: 12),
+                ViolationItem(label: '🚫 Illegal Parking', item: 'illegal-parking'),
+                SizedBox(height: 12),
+                ViolationItem(label: '🚦 Running Traffic Light', item: 'traffic-light'),
+                SizedBox(height: 12),
+                ViolationItem(label: '⚠️ Reckless Driving', item: 'reckless-driving'),
+                SizedBox(height: 12),
+                ViolationItem(label: '📱 Phone Use While Driving', item: 'phone-use'),
+                SizedBox(height: 12),
+                ViolationItem(label: '🔒 No Seatbelt', item: 'no-seatbelt'),
+                SizedBox(height: 12),
+                _buildViolationCard('�', 'Other Violation', 'other', Colors.grey),
+              ],
+            ),
           ),
-          ViolationItem(label: '⚠️ Reckless Driving', item: 'reckless-driving'),
-          ViolationItem(label: '📱 Phone Use While Driving', item: 'phone-use'),
-          ViolationItem(label: '🔒 No Seatbelt', item: 'no-seatbelt'),
-          ViolationItem(label: '📝 Other', item: 'other'),
+
+          SizedBox(height: 20),
+
+          // Info Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning, color: Colors.red, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Select at least one violation. Multiple violations may apply to a single incident.',
+                    style: TextStyle(
+                      fontSize: FontSizes().caption,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildViolationCard(String emoji, String title, String item, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: ViolationItem(
+        label: '$emoji $title',
+        item: item,
       ),
     );
   }
 
   Widget _buildStep4() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(30),
+      padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Evidence',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.3,
+          // Header Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Evidence Documentation',
+                  style: TextStyle(
+                    fontSize: FontSizes().body,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: 30),
-          AppTextFieldLabel(label: 'Photo Evidence', required: true),
-          SizedBox(height: 10),
-          AppImagePicker(
-            image: evidencePhoto,
-            onTap: () => _pickImage(StorageFolders.evidencePhotos),
-            icon: '📸',
-            text: 'Tap to upload proof photo',
-            subtext: 'Clear photo of the violation',
+          SizedBox(height: 20),
+
+          // Evidence Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.photo_camera, color: Colors.green, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Photo Evidence',
+                      style: TextStyle(
+                        fontSize: FontSizes().body,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      ' *',
+                      style: TextStyle(
+                        fontSize: FontSizes().body,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                AppImagePicker(
+                  image: evidencePhoto,
+                  onTap: () => _pickImage(StorageFolders.evidencePhotos),
+                  icon: '📸',
+                  text: 'Tap to capture evidence photo',
+                  subtext: 'Clear photo showing the violation in progress',
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 30),
+
+          SizedBox(height: 20),
+
+          // Guidelines Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Photo Guidelines',
+                      style: TextStyle(
+                        fontSize: FontSizes().body,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '• Ensure the photo clearly shows the violation\n'
+                  '• Include vehicle and license plate if possible\n'
+                  '• Take photo from a safe distance\n'
+                  '• Avoid blurry or dark images',
+                  style: TextStyle(
+                    fontSize: FontSizes().caption,
+                    color: Colors.white.withOpacity(0.8),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: 20),
+
+          // Confirmation Section
           Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.03), //.withOpacity(0.03),
+              color: Colors.white.withOpacity(0.03),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.03),
+                color: Colors.white.withOpacity(0.1),
                 width: 1,
               ),
             ),
-            child: Text(
-              '🔒 By submitting this report, you confirm that all information provided is accurate and truthful. Your report will be reviewed by the appropriate authorities.',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 13,
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
+            child: Column(
+              children: [
+                Icon(
+                  Icons.verified_user,
+                  color: Colors.green,
+                  size: 32,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Report Confirmation',
+                  style: TextStyle(
+                    fontSize: FontSizes().body,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'By submitting this report, you confirm that all information provided is accurate and truthful. Your report will be reviewed by the appropriate authorities.',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: FontSizes().caption,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
         ],

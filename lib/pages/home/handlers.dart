@@ -120,11 +120,18 @@ class HomeHandlers {
 
   Future<List<ReportModel>> loadAllReportDrafts() async {
     final prefs = await SharedPreferences.getInstance();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    
+    if (currentUser == null) {
+      return []; // Return empty list if no user is authenticated
+    }
+    
+    final userUUID = currentUser.uid;
 
-    // Get all keys and filter for those that start with 'draft_'
+    // Get all keys and filter for those that start with 'draft_' and belong to current user
     final draftKeys = prefs
         .getKeys()
-        .where((key) => key.startsWith('draft_'))
+        .where((key) => key.startsWith('draft_${userUUID}_'))
         .toList();
 
     final List<ReportModel> drafts = [];
@@ -133,8 +140,14 @@ class HomeHandlers {
     for (final key in draftKeys) {
       final String? draftJson = prefs.getString(key);
       if (draftJson != null) {
-        final Map<String, dynamic> draftMap = jsonDecode(draftJson);
-        drafts.add(ReportModel.fromJson(draftMap));
+        try {
+          final Map<String, dynamic> draftMap = jsonDecode(draftJson);
+          drafts.add(ReportModel.fromJson(draftMap));
+        } catch (e) {
+          print('Error loading draft $key: $e');
+          // Remove corrupted draft
+          await prefs.remove(key);
+        }
       }
     }
 

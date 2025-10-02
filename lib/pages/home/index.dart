@@ -13,6 +13,8 @@ import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/enums/user_roles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'components/greetings.dart';
 
@@ -151,7 +153,10 @@ class _HomePageState extends State<HomePage> {
                   style: TextButton.styleFrom(
                     foregroundColor: MainColor().error, // Change the color here
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    Navigator.pop(context); // Close the bottom sheet first
+                    await _deleteDraft(report);
+                  },
                   icon: const Icon(Icons.delete),
                   label: const Text('Delete'),
                   iconAlignment: IconAlignment.start,
@@ -176,5 +181,56 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  /// Delete a draft from local storage and refresh the home data
+  Future<void> _deleteDraft(ReportModel report) async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null || report.draftId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unable to delete draft: Invalid data'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final userUUID = currentUser.uid;
+      final draftKey = 'draft_${userUUID}_${report.draftId}';
+      
+      // Remove the draft from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final removed = await prefs.remove(draftKey);
+      
+      if (removed) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Draft deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
+        // Refresh home data to update the pending drafts list
+        context.read<HomeBloc>().add(FetchHomeData());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Draft not found or already deleted'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error deleting draft: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting draft: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
