@@ -18,7 +18,17 @@ class ViolationItem extends StatelessWidget {
           return const SizedBox.shrink();
         } else {
           final violations = state.violations;
-          bool? value = violations[item] ?? false;
+          // Handle both old bool values and new dynamic values for backward compatibility
+          final violationValue = violations[item];
+          bool value;
+          
+          if (violationValue is bool) {
+            value = violationValue;
+          } else if (violationValue is Map<String, dynamic>) {
+            value = true; // If it's a map, it means the violation is selected
+          } else {
+            value = false; // Default to false for any other type
+          }
 
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
@@ -27,7 +37,7 @@ class ViolationItem extends StatelessWidget {
                 context.read<ViolationBloc>().add(
                   UpdateViolationEvent(
                     key: item,
-                    value: !value, // Toggle the value
+                    value: !value ? true : false, // Toggle between true/false for simple violations
                   ),
                 );
                 HapticFeedback.lightImpact();

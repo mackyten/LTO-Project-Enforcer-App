@@ -1,5 +1,6 @@
 import 'package:enforcer_auto_fine/utils/tracking_no_generator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'violation_model.dart';
 
 class ReportModel {
@@ -57,7 +58,9 @@ class ReportModel {
           .toList(),
       draftId: json['draftId'] as String?,
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
+          ? (json['createdAt'] is Timestamp
+              ? (json['createdAt'] as Timestamp).toDate()
+              : DateTime.parse(json['createdAt'] as String))
           : DateTime(0),
       status: json['status'] as String? ?? "Submitted",
       paymentStatus: json['paymentStatus'] as String? ?? "Pending",
@@ -81,7 +84,7 @@ class ReportModel {
       'evidencePhoto': evidencePhoto,
       'draftId': draftId,
       'trackingNumber': createAlphanumericTrackingNumber(),
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : Timestamp.fromDate(DateTime.now()),
       'status': status,
       'paymentStatus': paymentStatus,
     };

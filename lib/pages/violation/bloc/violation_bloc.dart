@@ -15,7 +15,7 @@ class ViolationBloc extends Bloc<ViolationEvent, ViolationState> {
 
   void _onUpdateViolation(UpdateViolationEvent event, Emitter<ViolationState> emit) {
     if (state is HomeLoaded) {
-      final currentViolations = Map<String, bool>.from((state as HomeLoaded).violations);
+      final currentViolations = Map<String, dynamic>.from((state as HomeLoaded).violations);
       currentViolations[event.key] = event.value;
       emit(HomeLoaded(violations: currentViolations));
     }
@@ -23,9 +23,7 @@ class ViolationBloc extends Bloc<ViolationEvent, ViolationState> {
 
   void _onResetViolations(ResetViolationsEvent event, Emitter<ViolationState> emit) {
     if (state is HomeLoaded) {
-      final currentViolations = (state as HomeLoaded).violations;
-      final resetViolations =
-          currentViolations.map((key, value) => MapEntry(key, false));
+      final resetViolations = ViolationsConfig.getDefaultViolationsMap();
       emit(HomeLoaded(violations: resetViolations));
     }
   }

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:enforcer_auto_fine/pages/violation/components/enhanced_violation_item.dart';
 import 'package:enforcer_auto_fine/pages/violation/components/header.dart';
 import 'package:enforcer_auto_fine/pages/violation/components/navigation.dart';
-import 'package:enforcer_auto_fine/pages/violation/components/violation_item.dart';
 import 'package:enforcer_auto_fine/pages/violation/handlers.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/violations_config.dart';
@@ -69,6 +69,7 @@ class _ViolationPageState extends State<ViolationPage>
 
   //Local State
   bool isSaving = false;
+  bool hasBeenSubmittedSuccessfully = false;
 
   @override
   void initState() {
@@ -108,7 +109,9 @@ class _ViolationPageState extends State<ViolationPage>
                 orElse: () => const MapEntry('other', ViolationDefinition(
                   name: 'other',
                   displayName: 'Other Violation',
-                  defaultPrice: 1000.0,
+                  type: ViolationType.range,
+                  minPrice: 500.0,
+                  maxPrice: 100000.0,
                 )),
               )
               .key;
@@ -116,7 +119,13 @@ class _ViolationPageState extends State<ViolationPage>
           context.read<ViolationBloc>().add(
             UpdateViolationEvent(
               key: violationKey,
-              value: true, // Set to true since this violation exists in the initial data
+              value: {
+                'repetition': violationModel.repetition,
+                'price': violationModel.price,
+                if (violationModel.selectedOption != null) 'option': violationModel.selectedOption,
+                if (violationModel.excessPassengers != null) 'excessPassengers': violationModel.excessPassengers,
+                if (violationModel.additionalDetails != null) ...violationModel.additionalDetails!,
+              },
             ),
           );
         }
@@ -174,26 +183,79 @@ class _ViolationPageState extends State<ViolationPage>
     _progressController.forward(from: 0);
   }
 
+  bool _validateAllSteps(BuildContext context) {
+    final homeBlocState = context.read<ViolationBloc>().state;
+
+    // Validate Step 1: Personal Information
+    List<String> missingPersonalFields = _getMissingPersonalFields();
+    if (missingPersonalFields.isNotEmpty) {
+      String missingFieldsText = missingPersonalFields.join(', ');
+      showAlert(context, 'Required Fields Missing', 'Please complete the following required fields: $missingFieldsText');
+      return false;
+    }
+
+    // Validate Step 2: License & Vehicle Information
+    List<String> missingVehicleFields = _getMissingVehicleFields();
+    if (missingVehicleFields.isNotEmpty) {
+      String missingFieldsText = missingVehicleFields.join(', ');
+      showAlert(context, 'Required Fields Missing', 'Please complete the following required fields: $missingFieldsText');
+      return false;
+    }
+
+    // Check if plate photo is uploaded (required)
+    if (platePhoto == null) {
+      showAlert(context, 'Required', 'Please upload plate photo.');
+      return false;
+    }
+
+    // Validate Step 3: Violations
+    if (homeBlocState is HomeLoaded) {
+      // Check if any violation is selected (not false)
+      final hasSelectedViolations = homeBlocState.violations.values.any((value) => value != false);
+      if (!hasSelectedViolations) {
+        showAlert(
+          context,
+          'Required',
+          'Please select at least one violation.',
+        );
+        return false;
+      }
+    }
+
+    // Validate Step 4: Evidence Photo (REQUIRED)
+    if (evidencePhoto == null || evidencePhoto?.path == null || evidencePhoto?.path == '') {
+      showAlert(context, 'Evidence Photo Required', 'Evidence photo is mandatory. Please capture or select a photo showing the violation.');
+      return false;
+    }
+
+    return true;
+  }
+
   bool _validateCurrentStep(BuildContext context) {
     final homeBlocState = context.read<ViolationBloc>().state;
 
     switch (currentStep) {
       case 0:
-        return step1Key.currentState?.validate() ?? false;
+        List<String> missingPersonalFields = _getMissingPersonalFields();
+        if (missingPersonalFields.isNotEmpty) {
+          String missingFieldsText = missingPersonalFields.join(', ');
+          showAlert(context, 'Required Fields Missing', 'Please complete the following required fields: $missingFieldsText');
+          return false;
+        }
+        return true;
       case 1:
-        // Validate form fields first
-        bool formValid = step2Key.currentState?.validate() ?? false;
-        if (!formValid) return false;
-        
-        // Check if plate photo is uploaded (required)
-        if (platePhoto == null) {
-          showAlert(context, 'Required', 'Please upload plate photo.');
+        List<String> missingVehicleFields = _getMissingVehicleFields();
+        if (missingVehicleFields.isNotEmpty) {
+          String missingFieldsText = missingVehicleFields.join(', ');
+          showAlert(context, 'Required Fields Missing', 'Please complete the following required fields: $missingFieldsText');
           return false;
         }
         return true;
       case 2:
         if (homeBlocState is HomeLoaded) {
-          if (!homeBlocState.violations.values.any((selected) => selected)) {
+          // Check if any violation is selected (not false)
+          final hasSelectedViolations = homeBlocState.violations.values.any((value) => value != false);
+          if (!hasSelectedViolations) {
             showAlert(
               context,
               'Required',
@@ -204,14 +266,43 @@ class _ViolationPageState extends State<ViolationPage>
         }
         return true;
       case 3:
-        if (evidencePhoto == null) {
-          showAlert(context, 'Required', 'Please upload evidence photo.');
+        if (evidencePhoto == null || evidencePhoto?.path == null || evidencePhoto?.path == '') {
+          showAlert(context, 'Evidence Photo Required', 'Evidence photo is mandatory. Please capture or select a photo showing the violation.');
           return false;
         }
         return true;
       default:
         return true;
     }
+  }
+
+  List<String> _getMissingPersonalFields() {
+    List<String> missingFields = [];
+    
+    if (_fullnameController.text.trim().isEmpty) {
+      missingFields.add('Full Name');
+    }
+    if (_addressController.text.trim().isEmpty) {
+      missingFields.add('Complete Address');
+    }
+    if (_phoneController.text.trim().isEmpty) {
+      missingFields.add('Phone Number');
+    }
+    
+    return missingFields;
+  }
+
+  List<String> _getMissingVehicleFields() {
+    List<String> missingFields = [];
+    
+    if (_plateController.text.trim().isEmpty) {
+      missingFields.add('Plate Number');
+    }
+    if (platePhoto == null) {
+      missingFields.add('Plate Photo');
+    }
+    
+    return missingFields;
   }
 
   Future<void> _pickImage(StorageFolders type) async {
@@ -256,8 +347,17 @@ class _ViolationPageState extends State<ViolationPage>
       });
       return null;
     }
-    bool isValid = _validateCurrentStep(context);
+    bool isValid = _validateAllSteps(context);
     if (isValid) {
+      // Double-check evidence photo before proceeding (safety check)
+      if (evidencePhoto == null || evidencePhoto?.path == null || evidencePhoto?.path == '') {
+        showAlert(context, 'Evidence Photo Required', 'Cannot submit report without evidence photo. Please capture a photo showing the violation.');
+        setState(() {
+          isSaving = false;
+        });
+        return null;
+      }
+      
       HapticFeedback.mediumImpact();
       var licenseUrl = "";
       var plateUrl = "";
@@ -281,7 +381,7 @@ class _ViolationPageState extends State<ViolationPage>
         plateNumber: _plateController.text.trim(),
         platePhoto: plateUrl,
         evidencePhoto: evidenceUrl,
-        violations: ViolationsConfig.fromSelectedViolations(homeBlocState.violations),
+        violations: ViolationsConfig.fromSelectedViolationsWithData(homeBlocState.violations),
       );
 
       trackingNumber = await handleSave(data);
@@ -303,6 +403,7 @@ class _ViolationPageState extends State<ViolationPage>
 
       setState(() {
         isSaving = false;
+        hasBeenSubmittedSuccessfully = true; // Mark as successfully submitted
       });
     }
 
@@ -313,6 +414,16 @@ class _ViolationPageState extends State<ViolationPage>
   }
 
   Future<void> navigateBackToHome() async {
+    // Don't save draft if the form was successfully submitted
+    if (hasBeenSubmittedSuccessfully) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/home',
+        (Route<dynamic> route) => false,
+      );
+      return;
+    }
+
     final homeBlocState = context.read<ViolationBloc>().state;
     final uuid = const Uuid().v4(); // Generate a UUID for the new draft
 
@@ -353,7 +464,7 @@ class _ViolationPageState extends State<ViolationPage>
         platePhoto: plateUrl,
         evidencePhoto: evidenceUrl,
         draftId: uuid,
-        violations: ViolationsConfig.fromSelectedViolations(homeBlocState.violations),
+        violations: ViolationsConfig.fromSelectedViolationsWithData(homeBlocState.violations),
         createdAt: DateTime.now(), // Add the creation timestamp here
       );
 
@@ -362,6 +473,7 @@ class _ViolationPageState extends State<ViolationPage>
           report.address.trim().isNotEmpty ||
           report.phoneNumber.trim().isNotEmpty ||
           report.licenseNumber.trim().isNotEmpty ||
+          report.plateNumber.trim().isNotEmpty || // Include plate number in the check
           (report.licensePhoto.trim().isNotEmpty) ||
           (report.platePhoto.trim().isNotEmpty) ||
           (report.evidencePhoto.trim().isNotEmpty) ||
@@ -450,14 +562,15 @@ class _ViolationPageState extends State<ViolationPage>
       _addressController.clear();
       _phoneController.clear();
       _licenseController.clear();
+      _plateController.clear(); // Clear plate controller as well
 
       licensePhoto = null;
+      platePhoto = null; // Clear plate photo as well
       evidencePhoto = null;
+      hasBeenSubmittedSuccessfully = false; // Reset submission flag
     });
     if (homeBlocState is HomeLoaded) {
-      setState(() {
-        homeBlocState.violations.updateAll((key, value) => false);
-      });
+      context.read<ViolationBloc>().add(ResetViolationsEvent());
     }
     _pageController.animateToPage(
       0,
@@ -501,15 +614,16 @@ class _ViolationPageState extends State<ViolationPage>
                     totalSteps: totalSteps,
                     previousStep: previousStep,
                     submitForm: () => submitForm(context).then(
-                      (trackingNumber) => {
-                        showCupertinoDialog(
-                          context: context,
-                          builder: (context) => CupertinoAlertDialog(
-                            title: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                      (trackingNumber) {
+                        if (trackingNumber != null) {
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (context) => CupertinoAlertDialog(
+                              title: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
                                 Icon(
                                   Icons.verified,
                                   color: MainColor().success,
@@ -534,7 +648,7 @@ class _ViolationPageState extends State<ViolationPage>
                                     ),
                                   ),
                                   Text(
-                                    trackingNumber ?? "",
+                                    trackingNumber,
                                     style: TextStyle(
                                       fontSize: FontSizes().h3,
                                       fontWeight: FontWeight.bold,
@@ -545,23 +659,21 @@ class _ViolationPageState extends State<ViolationPage>
                                     label: Text("Copy to Clipboard"),
                                     onPressed: () {
                                       // Copy the tracking number to the clipboard
-                                      if (trackingNumber != null) {
-                                        Clipboard.setData(
-                                          ClipboardData(text: trackingNumber),
-                                        );
+                                      Clipboard.setData(
+                                        ClipboardData(text: trackingNumber),
+                                      );
 
-                                        // Optional: Show a snackbar or toast to confirm the copy action
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Tracking number copied!',
-                                            ),
-                                            duration: Duration(seconds: 1),
+                                      // Optional: Show a snackbar or toast to confirm the copy action
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Tracking number copied!',
+                                          ),
+                                          duration: Duration(seconds: 1),
                                           ),
                                         );
-                                      }
                                     },
                                   ),
                                 ],
@@ -577,7 +689,9 @@ class _ViolationPageState extends State<ViolationPage>
                               ),
                             ],
                           ),
-                        ),
+                        );
+                        }
+                        // If trackingNumber is null, submitForm already showed an error alert
                       },
                     ),
                     nextStep: () => nextStep(context),
@@ -846,6 +960,12 @@ class _ViolationPageState extends State<ViolationPage>
     );
   }
 
+  int _getOffenseNumber(String violationType) {
+    // For now, return 1. This should be calculated based on the plate number history
+    // The actual calculation will be done in the handlers when saving
+    return 1;
+  }
+
   Widget _buildStep3() {
     return SingleChildScrollView(
       padding: EdgeInsets.all(20),
@@ -892,19 +1012,86 @@ class _ViolationPageState extends State<ViolationPage>
               children: [
                 AppTextFieldLabel(label: "Select all that apply:", required: true),
                 SizedBox(height: 16),
-                ViolationItem(label: '🚗 Speeding', item: 'speeding'),
-                SizedBox(height: 12),
-                ViolationItem(label: '🚫 Illegal Parking', item: 'illegal-parking'),
-                SizedBox(height: 12),
-                ViolationItem(label: '🚦 Running Traffic Light', item: 'traffic-light'),
-                SizedBox(height: 12),
-                ViolationItem(label: '⚠️ Reckless Driving', item: 'reckless-driving'),
-                SizedBox(height: 12),
-                ViolationItem(label: '📱 Phone Use While Driving', item: 'phone-use'),
-                SizedBox(height: 12),
-                ViolationItem(label: '🔒 No Seatbelt', item: 'no-seatbelt'),
-                SizedBox(height: 12),
-                _buildViolationCard('�', 'Other Violation', 'other', Colors.grey),
+                EnhancedViolationItem(
+                    label: 'Driving without valid license',
+                    item: 'driving-without-license',
+                    offenseNumber: _getOffenseNumber('driving-without-license'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Driving without carrying license',
+                    item: 'driving-without-carrying-license',
+                    offenseNumber: _getOffenseNumber('driving-without-carrying-license'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Unregistered vehicle',
+                    item: 'unregistered-vehicle',
+                    offenseNumber: _getOffenseNumber('unregistered-vehicle'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Reckless driving',
+                    item: 'reckless-driving',
+                    offenseNumber: _getOffenseNumber('reckless-driving'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Disregarding traffic signs/ red light',
+                    item: 'disregarding-traffic-signs',
+                    offenseNumber: _getOffenseNumber('disregarding-traffic-signs'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Illegal parking',
+                    item: 'illegal-parking',
+                    offenseNumber: _getOffenseNumber('illegal-parking'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Number coding violation (MMDA)',
+                    item: 'number-coding-violation',
+                    offenseNumber: _getOffenseNumber('number-coding-violation'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'No Helmet (motorcycle)',
+                    item: 'no-helmet',
+                    offenseNumber: _getOffenseNumber('no-helmet'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'No seatbelt',
+                    item: 'no-seatbelt',
+                    offenseNumber: _getOffenseNumber('no-seatbelt'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Driving under influence',
+                    item: 'driving-under-influence',
+                    offenseNumber: _getOffenseNumber('driving-under-influence'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Overloading (PUVs)',
+                    item: 'overloading',
+                    offenseNumber: _getOffenseNumber('overloading'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Operating without franchise (PUVs)',
+                    item: 'operating-without-franchise',
+                    offenseNumber: _getOffenseNumber('operating-without-franchise'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Using phone while driving',
+                    item: 'using-phone-while-driving',
+                    offenseNumber: _getOffenseNumber('using-phone-while-driving'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Obstruction (crossing/driveway)',
+                    item: 'obstruction',
+                    offenseNumber: _getOffenseNumber('obstruction'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Smoke belching / emission',
+                    item: 'smoke-belching',
+                    offenseNumber: _getOffenseNumber('smoke-belching'),
+                  ),
+                  EnhancedViolationItem(
+                    label: 'Other',
+                    item: 'other',
+                    offenseNumber: _getOffenseNumber('other'),
+                  ),
               ],
             ),
           ),
@@ -937,20 +1124,6 @@ class _ViolationPageState extends State<ViolationPage>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildViolationCard(String emoji, String title, String item, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: ViolationItem(
-        label: '$emoji $title',
-        item: item,
       ),
     );
   }

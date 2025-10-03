@@ -84,7 +84,7 @@ class PaymentService {
         'amount': amount,
         'method': method,
         'status': status,
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': Timestamp.fromDate(DateTime.now()),
         'violations': report.violations.map((v) => {
           'name': v.violationName,
           'price': v.price,

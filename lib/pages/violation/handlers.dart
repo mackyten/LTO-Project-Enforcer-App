@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enforcer_auto_fine/enums/collections.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/violation_model.dart';
+import 'package:enforcer_auto_fine/pages/violation/models/violations_config.dart';
 
 /// Calculate repetition counts for violations based on previous reports for the same plate number
 Future<List<ViolationModel>> _calculateViolationRepetitions(
@@ -49,8 +50,32 @@ Future<List<ViolationModel>> _calculateViolationRepetitions(
       final existingCount = violationCounts[violation.violationName] ?? 0;
       return violation.copyWith(repetition: existingCount + 1);
     }).toList();
+
+    // Update prices based on repetition for violations that have repetition-based pricing
+    final List<ViolationModel> finalViolations = updatedViolations.map((violation) {
+      final violationDef = ViolationsConfig.definitions.values
+          .firstWhere(
+            (def) => def.displayName == violation.violationName,
+            orElse: () => const ViolationDefinition(
+              name: 'other',
+              displayName: 'Other',
+              type: ViolationType.range,
+              minPrice: 500.0,
+              maxPrice: 100000.0,
+            ),
+          );
+      
+      // Only update price for fixed-price violations if the current price matches default
+      if (violationDef.type == ViolationType.fixed && 
+          violationDef.prices != null) {
+        final newPrice = violationDef.getPriceForOffense(violation.repetition);
+        return violation.copyWith(price: newPrice);
+      }
+      
+      return violation;
+    }).toList();
     
-    return updatedViolations;
+    return finalViolations;
   } catch (e) {
     print('Error calculating violation repetitions: $e');
     // Return original violations if calculation fails

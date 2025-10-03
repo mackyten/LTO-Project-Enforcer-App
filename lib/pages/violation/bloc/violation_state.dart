@@ -11,7 +11,7 @@ abstract class ViolationState extends Equatable {
 final class HomeInitial extends ViolationState {}
 
 class HomeLoaded extends ViolationState {
-  final Map<String, bool> violations;
+  final Map<String, dynamic> violations; // Changed to dynamic to support both bool and violation data
 
   const HomeLoaded({required this.violations});
 

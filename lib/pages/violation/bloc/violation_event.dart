@@ -10,7 +10,7 @@ abstract class ViolationEvent extends Equatable {
 
 class UpdateViolationEvent extends ViolationEvent {
   final String key;
-  final bool value;
+  final dynamic value; // Changed to dynamic to support both bool and custom data
 
   const UpdateViolationEvent({required this.key, required this.value});
 
