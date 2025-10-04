@@ -89,4 +89,28 @@ class ReportModel {
       'paymentStatus': paymentStatus,
     };
   }
+
+  /// Special JSON method for drafts that converts Timestamp to string for SharedPreferences
+  Map<String, dynamic> toDraftJson() {
+    final user = FirebaseAuth.instance.currentUser;
+    createdById = user?.uid;
+
+    return {
+      'fullname': fullname,
+      'address': address,
+      'phoneNumber': phoneNumber,
+      'licenseNumber': licenseNumber,
+      'licensePhoto': licensePhoto,
+      'plateNumber': plateNumber,
+      'platePhoto': platePhoto,
+      'violations': violations.map((v) => v.toJson()).toList(),
+      'createdById': createdById,
+      'evidencePhoto': evidencePhoto,
+      'draftId': draftId,
+      'trackingNumber': createAlphanumericTrackingNumber(),
+      'createdAt': createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
+      'status': status,
+      'paymentStatus': paymentStatus,
+    };
+  }
 }

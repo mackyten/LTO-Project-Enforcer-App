@@ -32,7 +32,7 @@ class HomeHandlers {
         .collection('reports')
         .where(
           'createdAt',
-          isGreaterThanOrEqualTo: oneWeekAgo.toIso8601String(),
+          isGreaterThanOrEqualTo: Timestamp.fromDate(oneWeekAgo),
         )
         .count()
         .get();

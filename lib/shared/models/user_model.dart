@@ -16,8 +16,8 @@ class UserModel extends FirestoreBaseModel {
   final List<UserRoles>? roles;
   final List<String>? queryKeys;
   final String? temporaryPassword;
-  String? tempProfilePicture;
-  String? tempBadgePhoto;
+  File? tempProfilePicture;
+  File? tempBadgePhoto;
 
   UserModel({
     super.createdAt,

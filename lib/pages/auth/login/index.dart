@@ -1,3 +1,4 @@
+import 'package:enforcer_auto_fine/pages/auth/handlers.dart';
 import 'package:enforcer_auto_fine/pages/auth/login/components/poligon_clipper.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/components/textfield/app_input_border.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../enums/user_roles.dart';
+import 'firebase_password_reset.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -150,14 +152,13 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: BoxDecoration(
                           color: Colors.red.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.withOpacity(0.3)),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(0.3),
+                          ),
                         ),
                         child: Text(
                           errorMessage!,
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.red, fontSize: 14),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -169,7 +170,9 @@ class _LoginPageState extends State<LoginPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: MainColor().accent,
                           fixedSize: Size.fromHeight(50),
-                          disabledBackgroundColor: Colors.grey.withValues(alpha: 0.5),
+                          disabledBackgroundColor: Colors.grey.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                         onPressed: isLoggingIn
                             ? null
@@ -178,13 +181,18 @@ class _LoginPageState extends State<LoginPage> {
                                   isLoggingIn = true;
                                   errorMessage = null; // Clear previous error
                                 });
-                                
+
                                 try {
-                                  await _performSignIn(_emailController.text.trim(), _passwordController.text);
+                                  await _performSignIn(
+                                    _emailController.text.trim(),
+                                    _passwordController.text,
+                                  );
                                   // Sign-in successful - the wrapper will handle navigation
                                 } on FirebaseAuthException catch (e) {
                                   // Handle Firebase auth specific errors
-                                  String message = _getFirebaseAuthErrorMessage(e);
+                                  String message = _getFirebaseAuthErrorMessage(
+                                    e,
+                                  );
                                   setState(() {
                                     errorMessage = message;
                                     isLoggingIn = false;
@@ -192,7 +200,10 @@ class _LoginPageState extends State<LoginPage> {
                                 } catch (e) {
                                   // Handle other errors
                                   setState(() {
-                                    errorMessage = e.toString().replaceAll('Exception: ', '');
+                                    errorMessage = e.toString().replaceAll(
+                                      'Exception: ',
+                                      '',
+                                    );
                                     isLoggingIn = false;
                                   });
                                 }
@@ -212,7 +223,93 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextButton.styleFrom(
                         foregroundColor: MainColor().textPrimary,
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        // Show dialog to prompt for email
+                        final TextEditingController emailController =
+                            TextEditingController();
+
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Reset Password'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Enter your email address to receive a password reset link:',
+                                ),
+                                SizedBox(height: 16),
+                                TextField(
+                                  controller: emailController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Email',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.emailAddress,
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                child: Text('Cancel'),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                              TextButton(
+                                child: Text('Send Reset Link'),
+                                onPressed: () async {
+                                  Navigator.of(
+                                    context,
+                                  ).pop(); // Close the input dialog
+
+                                  try {
+                                    await sendFirebasePasswordReset(
+                                      emailController.text.trim(),
+                                    );
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text('Password Reset'),
+                                        content: Text(
+                                          'A password reset link has been sent to ${emailController.text.trim()}.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            child: Text('OK'),
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    if (mounted) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text('Error'),
+                                          content: Text(
+                                            e.toString().replaceAll(
+                                              'Exception: ',
+                                              '',
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              child: Text('OK'),
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                       child: Text("Forgot password"),
                     ),
                     SizedBox(height: 16),
@@ -249,7 +346,7 @@ class _LoginPageState extends State<LoginPage> {
       // If auth fails with invalid-credential, check for temporary password
       if (e.code == 'user-not-found') {
         print('User not found in Firebase Auth, checking Firestore...');
-        
+
         // Check Firestore for temporary password
         final usersRef = FirebaseFirestore.instance.collection('users');
         final query = usersRef.where('email', isEqualTo: email);
@@ -265,18 +362,18 @@ class _LoginPageState extends State<LoginPage> {
           final temporaryPassword = userData['temporaryPassword'];
 
           // Validate conditions: uuid is null, roles contains only Enforcer, temp password matches
-          if (uuid == null && 
-              roles.length == 1 && 
+          if (uuid == null &&
+              roles.length == 1 &&
               roles.contains(UserRoles.Enforcer.index) &&
               temporaryPassword == password) {
-            
             // Create Firebase Auth account
-            final newUserCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-              email: email,
-              password: password,
-            );
+            final newUserCredential = await FirebaseAuth.instance
+                .createUserWithEmailAndPassword(
+                  email: email,
+                  password: password,
+                );
             final newUuid = newUserCredential.user?.uid;
-            
+
             if (newUuid == null) {
               throw Exception('Failed to create user account');
             }
@@ -292,7 +389,9 @@ class _LoginPageState extends State<LoginPage> {
             return; // Success, let wrapper handle navigation
           } else {
             // Conditions not met, throw original error
-            throw Exception('Invalid credentials or account not properly configured');
+            throw Exception(
+              'Invalid credentials or account not properly configured',
+            );
           }
         } else {
           // No user found in Firestore, throw original error

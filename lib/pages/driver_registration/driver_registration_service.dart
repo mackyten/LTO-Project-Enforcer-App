@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:enforcer_auto_fine/utils/generate_query_key_prefixes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../enums/user_roles.dart';
 import '../../shared/models/driver_model.dart';
@@ -20,10 +21,8 @@ class DriverRegistrationService {
   }) async {
     try {
       // Create user in Firebase Auth
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       User? user = userCredential.user;
       if (user == null) {
@@ -33,6 +32,9 @@ class DriverRegistrationService {
           "Failed to create user account",
         );
       }
+      var firstNameSearchKeys = generateQueryKeyPrefixes(firstName);
+      var lastNameSearchKeys = generateQueryKeyPrefixes(lastName);
+      var middleNameSearchKeys = generateQueryKeyPrefixes(middleName ?? '');
 
       // Create driver model
       DriverModel driverModel = DriverModel(
@@ -46,6 +48,11 @@ class DriverRegistrationService {
         roles: [UserRoles.None, UserRoles.Driver],
         driverLicenseNumber: driverLicenseNumber,
         plateNumber: plateNumber,
+        queryKeys: [
+          ...firstNameSearchKeys,
+          ...lastNameSearchKeys,
+          ...middleNameSearchKeys
+        ],
       );
 
       // Save to Firestore
@@ -74,11 +81,7 @@ class DriverRegistrationService {
         default:
           errorMessage = 'Registration failed: ${e.message}';
       }
-      return ResponseModel<DriverModel>(
-        null,
-        false,
-        errorMessage,
-      );
+      return ResponseModel<DriverModel>(null, false, errorMessage);
     } catch (e) {
       return ResponseModel<DriverModel>(
         null,

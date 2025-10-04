@@ -44,17 +44,14 @@ class _HomePageState extends State<HomePage> {
           if (state is HomeLoaded) {
             // Only show FAB for enforcers
             if (state.isEnforcer) {
-              return ElevatedButton(
+              return FloatingActionButton.extended(
                 onPressed: () {
                   Navigator.pushNamed(context, '/violations');
                 },
-                style: ElevatedButton.styleFrom(
-                  shape: CircleBorder(),
-                  padding: EdgeInsets.all(12),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                child: Icon(Icons.add),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                icon: Icon(Icons.add),
+                label: Text("New Report"),
               );
             }
           }

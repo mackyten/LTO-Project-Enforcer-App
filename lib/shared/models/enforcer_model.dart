@@ -4,7 +4,7 @@ import 'user_model.dart';
 
 class EnforcerModel extends UserModel {
   final String? enforcerIdNumber;
-  final String? badgePhoto;
+  String? badgePhoto;
 
   // Temporary fields for uploads
 

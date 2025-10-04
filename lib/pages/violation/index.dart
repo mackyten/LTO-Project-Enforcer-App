@@ -90,14 +90,29 @@ class _ViolationPageState extends State<ViolationPage>
       _licenseController.text = widget.initialData?.licenseNumber ?? "";
       _plateController.text = widget.initialData?.plateNumber ?? "";
 
-      if (widget.initialData?.licensePhoto != null) {
-        licensePhoto = File(widget.initialData!.licensePhoto);
+      if (widget.initialData?.licensePhoto != null && 
+          widget.initialData!.licensePhoto.isNotEmpty &&
+          !widget.initialData!.licensePhoto.startsWith('http')) {
+        final file = File(widget.initialData!.licensePhoto);
+        if (file.existsSync()) {
+          licensePhoto = file;
+        }
       }
-      if (widget.initialData?.platePhoto != null) {
-        platePhoto = File(widget.initialData!.platePhoto);
+      if (widget.initialData?.platePhoto != null && 
+          widget.initialData!.platePhoto.isNotEmpty &&
+          !widget.initialData!.platePhoto.startsWith('http')) {
+        final file = File(widget.initialData!.platePhoto);
+        if (file.existsSync()) {
+          platePhoto = file;
+        }
       }
-      if (widget.initialData?.evidencePhoto != null) {
-        evidencePhoto = File(widget.initialData!.evidencePhoto);
+      if (widget.initialData?.evidencePhoto != null && 
+          widget.initialData!.evidencePhoto.isNotEmpty &&
+          !widget.initialData!.evidencePhoto.startsWith('http')) {
+        final file = File(widget.initialData!.evidencePhoto);
+        if (file.existsSync()) {
+          evidencePhoto = file;
+        }
       }
 
       if (widget.initialData?.violations != null) {
@@ -523,7 +538,7 @@ class _ViolationPageState extends State<ViolationPage>
 
           if (allDrafts.isNotEmpty) {
             final earliestDraft = allDrafts.first;
-            final earliestDraftJson = jsonEncode(earliestDraft.toJson());
+            final earliestDraftJson = jsonEncode(earliestDraft.toDraftJson());
 
             // 3. Find the key of the earliest draft and delete it
             final earliestDraftKey = draftKeys.firstWhere(
@@ -540,7 +555,7 @@ class _ViolationPageState extends State<ViolationPage>
 
         // Save the new draft with user identifier
         final newDraftKey = 'draft_${userUUID}_$uuid';
-        final reportJson = jsonEncode(report.toJson());
+        final reportJson = jsonEncode(report.toDraftJson());
         await prefs.setString(newDraftKey, reportJson);
         print('Report draft saved with key: $newDraftKey');
       }

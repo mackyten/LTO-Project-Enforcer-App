@@ -111,7 +111,7 @@ Future<void> signOut(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
     // User is now signed out
     print("User signed out successfully.");
-    
+
     // Navigate to sign-in page after successful sign-out
     if (context.mounted) {
       Navigator.pushNamedAndRemoveUntil(
@@ -124,4 +124,11 @@ Future<void> signOut(BuildContext context) async {
     print("Error signing out: $e");
     // Handle any errors that might occur during sign out
   }
+}
+
+Future<void> sendFirebasePasswordReset(String email) async {
+  if (email.isEmpty) {
+    throw Exception('Please enter your email address first.');
+  }
+  await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
 }
