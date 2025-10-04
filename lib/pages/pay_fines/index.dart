@@ -156,7 +156,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
                   child: ElevatedButton(
                     onPressed: _isSearching ? null : _searchViolation,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: MainColor().primary,
+                      backgroundColor: MainColor().accent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

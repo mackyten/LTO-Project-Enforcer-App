@@ -6,16 +6,18 @@
             "type": "shell",
             "dependsOrder": "sequence",
             "dependsOn": [
+                "flutter-clean-build",
                 "flutter-clean",
                 "flutter-pub-get",
-                "flutter-clean-build"
             ]
         },
         {
             "label": "flutter-clean",
             "type": "shell",
             "command": "flutter",
-            "args": ["clean"],
+            "args": [
+                "clean"
+            ],
             "group": "build",
             "presentation": {
                 "echo": true,
@@ -29,7 +31,10 @@
             "label": "flutter-pub-get",
             "type": "shell",
             "command": "flutter",
-            "args": ["pub", "get"],
+            "args": [
+                "pub",
+                "get"
+            ],
             "group": "build",
             "presentation": {
                 "echo": true,
@@ -43,7 +48,10 @@
             "label": "flutter-clean-build",
             "type": "shell",
             "command": "flutter",
-            "args": ["clean", "build"],
+            "args": [
+                "clean",
+                "build"
+            ],
             "group": "build",
             "presentation": {
                 "echo": true,

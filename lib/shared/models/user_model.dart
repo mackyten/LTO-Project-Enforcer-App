@@ -6,7 +6,7 @@ import 'firestore_base_model.dart';
 
 class UserModel extends FirestoreBaseModel {
   final String? documentId;
-  final String uuid;
+  final String? uuid;
   final String firstName;
   final String lastName;
   final String? middleName;
@@ -25,7 +25,7 @@ class UserModel extends FirestoreBaseModel {
     super.isDeleted,
     super.deletedAt,
     this.documentId,
-    required this.uuid,
+    this.uuid,
     required this.firstName,
     required this.lastName,
     this.middleName,
@@ -84,10 +84,23 @@ class UserModel extends FirestoreBaseModel {
       profilePictureUrl: json['profilePictureUrl'],
       roles: (json['roles'] as List<dynamic>)
           .map(
-            (role) => UserRoles.values.firstWhere(
-              (e) => e.toString().split('.').last == role,
-              orElse: () => UserRoles.None,
-            ),
+            (role) {
+              // Handle both number and string role formats
+              if (role is int) {
+                // Role is stored as number (index in enum)
+                if (role >= 0 && role < UserRoles.values.length) {
+                  return UserRoles.values[role];
+                }
+                return UserRoles.None;
+              } else if (role is String) {
+                // Role is stored as string (fallback for compatibility)
+                return UserRoles.values.firstWhere(
+                  (e) => e.toString().split('.').last == role,
+                  orElse: () => UserRoles.None,
+                );
+              }
+              return UserRoles.None;
+            },
           )
           .toList(),
       queryKeys: json['queryKeys'] != null

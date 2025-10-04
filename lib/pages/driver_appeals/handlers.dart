@@ -35,13 +35,12 @@ class DriverAppealsHandlers {
       throw Exception('User not authenticated');
     }
 
-    final countSnapshot = await _db
+    final querySnapshot = await _db
         .collection('appeals')
         .where('createdById', isEqualTo: currentUser.uid)
-        .count()
         .get();
 
-    return countSnapshot.count ?? 0;
+    return querySnapshot.size;
   }
 
   /// Get appeals count by status for the current driver

@@ -1,5 +1,6 @@
 import 'package:enforcer_auto_fine/shared/components/textfield/components/label.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -8,6 +9,7 @@ class AppTextField extends StatelessWidget {
   final bool required;
   final int maxLines;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
 
   const AppTextField({
     super.key,
@@ -17,6 +19,7 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.required = false,
+    this.inputFormatters,
   });
 
   @override
@@ -30,6 +33,7 @@ class AppTextField extends StatelessWidget {
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           style: TextStyle(color: Colors.white, fontSize: 17),
           decoration: InputDecoration(
             hintText: placeholder,

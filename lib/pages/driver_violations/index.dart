@@ -483,7 +483,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
               ),
             ),
             Expanded(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -658,7 +658,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                       ),
                     ),
 
-                    Spacer(),
+                    SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -723,6 +723,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
           Expanded(
             child: Text(
               value,
+              
               style: TextStyle(
                 fontSize: FontSizes().body,
                 color: Colors.white,

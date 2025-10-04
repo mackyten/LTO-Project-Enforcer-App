@@ -9,8 +9,11 @@ import 'package:enforcer_auto_fine/shared/components/app_bar/index.dart';
 import 'package:enforcer_auto_fine/shared/components/loading_overlay/index.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
 import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
+import 'package:enforcer_auto_fine/shared/models/driver_model.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_id_type_model.dart';
+import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
 import 'package:enforcer_auto_fine/shared/models/user_model.dart';
+import 'package:enforcer_auto_fine/utils/input_formatters.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -54,10 +57,18 @@ class _ProfileState extends State<Profile> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
+  // Driver-specific controllers
+  final _plateNumberController = TextEditingController();
+  final _licenseNumberController = TextEditingController();
+
   final _reauthPasswordController = TextEditingController();
   String? _selectedIdType;
   File? badgePhoto;
   File? userProfilePic;
+
+  // Original values for driver-specific fields
+  String? _originalPlateNumber;
+  String? _originalLicenseNumber;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -88,6 +99,8 @@ class _ProfileState extends State<Profile> {
     _firstNameController.addListener(_checkForChanges);
     _lastNameController.addListener(_checkForChanges);
     _mobileNumberController.addListener(_checkForChanges);
+    _plateNumberController.addListener(_checkForChanges);
+    _licenseNumberController.addListener(_checkForChanges);
 
     // Dispatch the event to start fetching data
     context.read<HomeBloc>().add(FetchHomeData());
@@ -102,7 +115,22 @@ class _ProfileState extends State<Profile> {
       _emailController.text = user.email;
       _lastNameController.text = user.lastName;
       _firstNameController.text = user.firstName;
-      _mobileNumberController.text = user.mobileNumber ?? "";
+      // Initialize mobile number with +63 prefix if empty, otherwise use existing value
+      String mobileNumber = user.mobileNumber ?? "";
+      if (mobileNumber.isEmpty) {
+        _mobileNumberController.text = "+63";
+      } else if (!mobileNumber.startsWith("+63")) {
+        // If the existing number doesn't have +63, add it (assuming it's a Philippine number without prefix)
+        _mobileNumberController.text = "+63$mobileNumber";
+      } else {
+        _mobileNumberController.text = mobileNumber;
+      }
+
+      // Initialize driver-specific fields if user is a driver
+      if (homeBlocState.isDriver && user is DriverModel) {
+        _plateNumberController.text = user.plateNumber ?? "";
+        _licenseNumberController.text = user.driverLicenseNumber ?? "";
+      }
     }
   }
 
@@ -114,11 +142,15 @@ class _ProfileState extends State<Profile> {
     _firstNameController.removeListener(_checkForChanges);
     _lastNameController.removeListener(_checkForChanges);
     _mobileNumberController.removeListener(_checkForChanges);
+    _plateNumberController.removeListener(_checkForChanges);
+    _licenseNumberController.removeListener(_checkForChanges);
 
     _emailController.dispose();
     _lastNameController.dispose();
     _firstNameController.dispose();
     _mobileNumberController.dispose();
+    _plateNumberController.dispose();
+    _licenseNumberController.dispose();
     super.dispose();
   }
 
@@ -134,6 +166,8 @@ class _ProfileState extends State<Profile> {
     _originalMobileNumber = _mobileNumberController.text;
     _originalSelectedIdType = _selectedIdType;
     _originalBadgePhoto = badgePhoto;
+    _originalPlateNumber = _plateNumberController.text;
+    _originalLicenseNumber = _licenseNumberController.text;
   }
 
   void _checkForChanges() {
@@ -142,7 +176,9 @@ class _ProfileState extends State<Profile> {
         _lastNameController.text != (_originalLastName ?? '') ||
         _mobileNumberController.text != (_originalMobileNumber ?? '') ||
         _selectedIdType != _originalSelectedIdType ||
-        badgePhoto != _originalBadgePhoto;
+        badgePhoto != _originalBadgePhoto ||
+        _plateNumberController.text != (_originalPlateNumber ?? '') ||
+        _licenseNumberController.text != (_originalLicenseNumber ?? '');
 
     if (_hasUnsavedChanges != hasChanges) {
       setState(() {
@@ -224,6 +260,8 @@ class _ProfileState extends State<Profile> {
         _mobileNumberController.text = _originalMobileNumber ?? '';
         _selectedIdType = _originalSelectedIdType;
         badgePhoto = _originalBadgePhoto;
+        _plateNumberController.text = _originalPlateNumber ?? '';
+        _licenseNumberController.text = _originalLicenseNumber ?? '';
 
         setState(() {
           isEditMode = false;
@@ -247,6 +285,8 @@ class _ProfileState extends State<Profile> {
         _mobileNumberController.text = _originalMobileNumber ?? '';
         _selectedIdType = _originalSelectedIdType;
         badgePhoto = _originalBadgePhoto;
+        _plateNumberController.text = _originalPlateNumber ?? '';
+        _licenseNumberController.text = _originalLicenseNumber ?? '';
 
         setState(() {
           isEditMode = false;
@@ -325,7 +365,7 @@ class _ProfileState extends State<Profile> {
                                 foregroundColor: MainColor().textPrimary,
                               ),
                               onPressed: () {
-                                _updateData(user.uuid);
+                                _updateData(user);
                               },
                               child: Text('Save'),
                             ),
@@ -418,296 +458,507 @@ class _ProfileState extends State<Profile> {
                                       label: 'Mobile Number',
                                       icon: Icons.phone_outlined,
                                       readOnly: false,
+                                      inputFormatters: [
+                                        PhilippineMobileNumberFormatter(),
+                                      ],
+                                      keyboardType: TextInputType.phone,
                                     ),
 
                                     SizedBox(height: 28),
-                                    if (!isEditMode) ...[
-                                      // View mode: Modern card-style display for ID Type
+
+                                    // Driver-specific fields
+                                    if (user is DriverModel) ...[
+                                      _buildProfileField(
+                                        controller: _plateNumberController,
+                                        label: 'Plate Number',
+                                        icon: Icons.directions_car,
+                                        readOnly: false,
+                                      ),
+                                      SizedBox(height: 28),
+                                      _buildProfileField(
+                                        controller: _licenseNumberController,
+                                        label: 'Driver License Number',
+                                        icon: Icons.badge,
+                                        readOnly: false,
+                                      ),
+                                      SizedBox(height: 28),
+                                    ],
+
+                                    // Enforcer-specific fields (ID Type and Badge Photo)
+                                    if (user is EnforcerModel) ...[
+                                      if (!isEditMode) ...[
+                                        // View mode: Modern card-style display for ID Type
+                                        Container(
+                                          width: double.infinity,
+                                          padding: EdgeInsets.all(20),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.white.withOpacity(0.08),
+                                                Colors.white.withOpacity(0.04),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.white.withOpacity(
+                                                0.15,
+                                              ),
+                                              width: 1,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
+                                                blurRadius: 15,
+                                                offset: Offset(0, 5),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.all(12),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.orange
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Icon(
+                                                  Icons.badge,
+                                                  color: Colors.orange
+                                                      .withOpacity(0.8),
+                                                  size: 22,
+                                                ),
+                                              ),
+                                              SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'ID / Badge Type',
+                                                      style: TextStyle(
+                                                        color: MainColor()
+                                                            .textPrimary
+                                                            .withOpacity(0.7),
+                                                        fontSize:
+                                                            FontSizes().caption,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 6),
+                                                    Text(
+                                                      _selectedIdType ??
+                                                          "Not selected",
+                                                      style: TextStyle(
+                                                        color:
+                                                            _selectedIdType !=
+                                                                null
+                                                            ? MainColor()
+                                                                  .textPrimary
+                                                            : MainColor()
+                                                                  .textPrimary
+                                                                  .withOpacity(
+                                                                    0.4,
+                                                                  ),
+                                                        fontSize:
+                                                            FontSizes().body,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        // Edit mode: Modern dropdown
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.1,
+                                                ),
+                                                blurRadius: 10,
+                                                offset: Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: _buildIdTypeDropdown(
+                                            'Select ID / Badge Type',
+                                          ),
+                                        ),
+                                      ],
+
+                                      SizedBox(height: 32),
                                       Container(
-                                        width: double.infinity,
-                                        padding: EdgeInsets.all(20),
                                         decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
                                           gradient: LinearGradient(
                                             colors: [
-                                              Colors.white.withOpacity(0.08),
-                                              Colors.white.withOpacity(0.04),
+                                              Colors.white.withOpacity(0.1),
+                                              Colors.white.withOpacity(0.05),
                                             ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
                                           border: Border.all(
                                             color: Colors.white.withOpacity(
-                                              0.15,
+                                              0.2,
                                             ),
                                             width: 1,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
                                               color: Colors.black.withOpacity(
-                                                0.1,
+                                                0.15,
                                               ),
-                                              blurRadius: 15,
-                                              offset: Offset(0, 5),
+                                              blurRadius: 20,
+                                              offset: Offset(0, 8),
                                             ),
                                           ],
                                         ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              padding: EdgeInsets.all(12),
-                                              decoration: BoxDecoration(
-                                                color: Colors.orange
-                                                    .withOpacity(0.2),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Icon(
-                                                Icons.badge,
-                                                color: Colors.orange
-                                                    .withOpacity(0.8),
-                                                size: 22,
-                                              ),
-                                            ),
-                                            SizedBox(width: 16),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'ID / Badge Type',
-                                                    style: TextStyle(
-                                                      color: MainColor()
-                                                          .textPrimary
-                                                          .withOpacity(0.7),
-                                                      fontSize:
-                                                          FontSizes().caption,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      letterSpacing: 0.5,
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 6),
-                                                  Text(
-                                                    _selectedIdType ??
-                                                        "Not selected",
-                                                    style: TextStyle(
-                                                      color:
-                                                          _selectedIdType !=
-                                                              null
-                                                          ? MainColor()
-                                                                .textPrimary
-                                                          : MainColor()
-                                                                .textPrimary
-                                                                .withOpacity(
-                                                                  0.4,
-                                                                ),
-                                                      fontSize:
-                                                          FontSizes().body,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ] else ...[
-                                      // Edit mode: Modern dropdown
-                                      Container(
-                                        decoration: BoxDecoration(
+                                        child: ClipRRect(
                                           borderRadius: BorderRadius.circular(
-                                            16,
+                                            24,
                                           ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: _buildIdTypeDropdown(
-                                          'Select ID / Badge Type',
-                                        ),
-                                      ),
-                                    ],
-
-                                    SizedBox(height: 32),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(24),
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.white.withOpacity(0.1),
-                                            Colors.white.withOpacity(0.05),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        border: Border.all(
-                                          color: Colors.white.withOpacity(0.2),
-                                          width: 1,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.15,
-                                            ),
-                                            blurRadius: 20,
-                                            offset: Offset(0, 8),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(24),
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              width: double.infinity,
-                                              height: size.width * .60,
-                                              child: badgePhoto != null
-                                                  ? Image.file(
-                                                      badgePhoto!,
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                  : Container(
-                                                      decoration: BoxDecoration(
-                                                        gradient: LinearGradient(
-                                                          colors: [
-                                                            Colors.grey
-                                                                .withOpacity(
-                                                                  0.1,
+                                          child: Stack(
+                                            children: [
+                                              Container(
+                                                width: double.infinity,
+                                                height: size.width * .60,
+                                                child: badgePhoto != null
+                                                    ? Image.file(
+                                                        badgePhoto!,
+                                                        fit: BoxFit.cover,
+                                                      )
+                                                    : (user.badgePhoto !=
+                                                              null &&
+                                                          user
+                                                              .badgePhoto!
+                                                              .isNotEmpty)
+                                                    ? Image.network(
+                                                        user.badgePhoto!,
+                                                        fit: BoxFit.cover,
+                                                        loadingBuilder:
+                                                            (
+                                                              context,
+                                                              child,
+                                                              loadingProgress,
+                                                            ) {
+                                                              if (loadingProgress ==
+                                                                  null)
+                                                                return child;
+                                                              return Center(
+                                                                child: CircularProgressIndicator(
+                                                                  value:
+                                                                      loadingProgress
+                                                                              .expectedTotalBytes !=
+                                                                          null
+                                                                      ? loadingProgress.cumulativeBytesLoaded /
+                                                                            loadingProgress.expectedTotalBytes!
+                                                                      : null,
                                                                 ),
-                                                            Colors.grey
-                                                                .withOpacity(
-                                                                  0.05,
-                                                                ),
-                                                          ],
-                                                          begin: Alignment
-                                                              .topCenter,
-                                                          end: Alignment
-                                                              .bottomCenter,
-                                                        ),
-                                                      ),
-                                                      child: !isEditMode
-                                                          ? Center(
-                                                              child: Column(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .center,
-                                                                children: [
-                                                                  Container(
-                                                                    padding:
-                                                                        EdgeInsets.all(
-                                                                          16,
-                                                                        ),
-                                                                    decoration: BoxDecoration(
-                                                                      color: Colors
-                                                                          .white
+                                                              );
+                                                            },
+                                                        errorBuilder:
+                                                            (
+                                                              context,
+                                                              error,
+                                                              stackTrace,
+                                                            ) {
+                                                              return Container(
+                                                                decoration: BoxDecoration(
+                                                                  gradient: LinearGradient(
+                                                                    colors: [
+                                                                      Colors
+                                                                          .grey
                                                                           .withOpacity(
                                                                             0.1,
                                                                           ),
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                            20,
-                                                                          ),
-                                                                    ),
-                                                                    child: Icon(
-                                                                      Icons
-                                                                          .badge_outlined,
-                                                                      size: 48,
-                                                                      color: MainColor()
-                                                                          .textPrimary
+                                                                      Colors
+                                                                          .grey
                                                                           .withOpacity(
-                                                                            0.4,
+                                                                            0.05,
                                                                           ),
-                                                                    ),
+                                                                    ],
+                                                                    begin: Alignment
+                                                                        .topCenter,
+                                                                    end: Alignment
+                                                                        .bottomCenter,
                                                                   ),
-                                                                  SizedBox(
-                                                                    height: 16,
-                                                                  ),
-                                                                  Text(
-                                                                    'No badge photo',
-                                                                    style: TextStyle(
-                                                                      color: MainColor()
-                                                                          .textPrimary
-                                                                          .withOpacity(
+                                                                ),
+                                                                child: Center(
+                                                                  child: Column(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .center,
+                                                                    children: [
+                                                                      Icon(
+                                                                        Icons
+                                                                            .error_outline,
+                                                                        size:
+                                                                            48,
+                                                                        color: MainColor()
+                                                                            .textPrimary
+                                                                            .withOpacity(
+                                                                              0.4,
+                                                                            ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                        height:
+                                                                            8,
+                                                                      ),
+                                                                      Text(
+                                                                        'Failed to load image',
+                                                                        style: TextStyle(
+                                                                          color: MainColor().textPrimary.withOpacity(
                                                                             0.6,
                                                                           ),
-                                                                      fontSize:
-                                                                          FontSizes()
-                                                                              .body,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w500,
-                                                                    ),
+                                                                          fontSize:
+                                                                              FontSizes().caption,
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   ),
-                                                                ],
-                                                              ),
-                                                            )
-                                                          : null,
-                                                    ),
-                                            ),
-                                            if (isEditMode)
-                                              GestureDetector(
-                                                onTap: () =>
-                                                    _pickImage('badge-photo'),
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    gradient: LinearGradient(
-                                                      colors: [
-                                                        Colors.black
-                                                            .withOpacity(0.7),
-                                                        Colors.black
-                                                            .withOpacity(0.5),
-                                                      ],
-                                                      begin:
-                                                          Alignment.topCenter,
-                                                      end: Alignment
-                                                          .bottomCenter,
-                                                    ),
-                                                  ),
-                                                  width: double.infinity,
-                                                  height: size.width * .60,
-                                                  child: Center(
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Container(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                16,
-                                                              ),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.white
-                                                                .withOpacity(
-                                                                  0.2,
                                                                 ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  20,
-                                                                ),
-                                                          ),
-                                                          child: Icon(
-                                                            Icons
-                                                                .camera_alt_rounded,
-                                                            color: Colors.white,
-                                                            size: 32,
+                                                              );
+                                                            },
+                                                      )
+                                                    : Container(
+                                                        decoration: BoxDecoration(
+                                                          gradient: LinearGradient(
+                                                            colors: [
+                                                              Colors.grey
+                                                                  .withOpacity(
+                                                                    0.1,
+                                                                  ),
+                                                              Colors.grey
+                                                                  .withOpacity(
+                                                                    0.05,
+                                                                  ),
+                                                            ],
+                                                            begin: Alignment
+                                                                .topCenter,
+                                                            end: Alignment
+                                                                .bottomCenter,
                                                           ),
                                                         ),
-                                                        SizedBox(height: 16),
-                                                        Text(
-                                                          "Tap to update photo",
+                                                        child: !isEditMode
+                                                            ? Center(
+                                                                child: Column(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .center,
+                                                                  children: [
+                                                                    Container(
+                                                                      padding:
+                                                                          EdgeInsets.all(
+                                                                            16,
+                                                                          ),
+                                                                      decoration: BoxDecoration(
+                                                                        color: Colors
+                                                                            .white
+                                                                            .withOpacity(
+                                                                              0.1,
+                                                                            ),
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                              20,
+                                                                            ),
+                                                                      ),
+                                                                      child: Icon(
+                                                                        Icons
+                                                                            .badge_outlined,
+                                                                        size:
+                                                                            48,
+                                                                        color: MainColor()
+                                                                            .textPrimary
+                                                                            .withOpacity(
+                                                                              0.4,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    SizedBox(
+                                                                      height:
+                                                                          16,
+                                                                    ),
+                                                                    Text(
+                                                                      'No badge photo',
+                                                                      style: TextStyle(
+                                                                        color: MainColor()
+                                                                            .textPrimary
+                                                                            .withOpacity(
+                                                                              0.6,
+                                                                            ),
+                                                                        fontSize:
+                                                                            FontSizes().body,
+                                                                        fontWeight:
+                                                                            FontWeight.w500,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              )
+                                                            : null,
+                                                      ),
+                                              ),
+                                              if (isEditMode)
+                                                GestureDetector(
+                                                  onTap: () =>
+                                                      _pickImage('badge-photo'),
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          Colors.black
+                                                              .withOpacity(0.7),
+                                                          Colors.black
+                                                              .withOpacity(0.5),
+                                                        ],
+                                                        begin:
+                                                            Alignment.topCenter,
+                                                        end: Alignment
+                                                            .bottomCenter,
+                                                      ),
+                                                    ),
+                                                    width: double.infinity,
+                                                    height: size.width * .60,
+                                                    child: Center(
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Container(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                  16,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors
+                                                                  .white
+                                                                  .withOpacity(
+                                                                    0.2,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    20,
+                                                                  ),
+                                                            ),
+                                                            child: Icon(
+                                                              Icons
+                                                                  .camera_alt_rounded,
+                                                              color:
+                                                                  Colors.white,
+                                                              size: 32,
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 16),
+                                                          Text(
+                                                            "Tap to update photo",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize:
+                                                                  FontSizes()
+                                                                      .body,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      SizedBox(height: 32),
+                                    ], // End of enforcer-specific fields
+
+                                    // Common password section for both user types
+                                    isEditMode
+                                        ? SizedBox()
+                                        : Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.blue.withOpacity(0.8),
+                                                  Colors.blue.withOpacity(0.6),
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.blue
+                                                      .withOpacity(0.3),
+                                                  blurRadius: 15,
+                                                  offset: Offset(0, 6),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                onTap:
+                                                    _showChangePasswordBottomSheet,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                child: Padding(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 24,
+                                                    vertical: 16,
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Container(
+                                                        padding: EdgeInsets.all(
+                                                          10,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white
+                                                              .withOpacity(0.2),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                12,
+                                                              ),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons
+                                                              .lock_outline_rounded,
+                                                          color: Colors.white,
+                                                          size: 22,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 16),
+                                                      Expanded(
+                                                        child: Text(
+                                                          "Update Password",
                                                           style: TextStyle(
                                                             color: Colors.white,
                                                             fontSize:
@@ -717,93 +968,20 @@ class _ProfileState extends State<Profile> {
                                                                 FontWeight.w600,
                                                           ),
                                                         ),
-                                                      ],
-                                                    ),
+                                                      ),
+                                                      Icon(
+                                                        Icons
+                                                            .arrow_forward_ios_rounded,
+                                                        color: Colors.white
+                                                            .withOpacity(0.8),
+                                                        size: 18,
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-
-                                    SizedBox(height: 32),
-
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.blue.withOpacity(0.8),
-                                            Colors.blue.withOpacity(0.6),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.blue.withOpacity(0.3),
-                                            blurRadius: 15,
-                                            offset: Offset(0, 6),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: _showChangePasswordBottomSheet,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          child: Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 24,
-                                              vertical: 16,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Container(
-                                                  padding: EdgeInsets.all(10),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white
-                                                        .withOpacity(0.2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                  ),
-                                                  child: Icon(
-                                                    Icons.lock_outline_rounded,
-                                                    color: Colors.white,
-                                                    size: 22,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 16),
-                                                Expanded(
-                                                  child: Text(
-                                                    "Update Password",
-                                                    style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize:
-                                                          FontSizes().body,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Icon(
-                                                  Icons
-                                                      .arrow_forward_ios_rounded,
-                                                  color: Colors.white
-                                                      .withOpacity(0.8),
-                                                  size: 18,
-                                                ),
-                                              ],
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
@@ -894,6 +1072,8 @@ class _ProfileState extends State<Profile> {
     required String label,
     required IconData icon,
     required bool readOnly,
+    List<TextInputFormatter>? inputFormatters,
+    TextInputType? keyboardType,
   }) {
     if (isEditMode) {
       // Edit mode: Modern text field with subtle styling
@@ -911,6 +1091,8 @@ class _ProfileState extends State<Profile> {
         child: TextFormField(
           controller: controller,
           readOnly: readOnly,
+          inputFormatters: inputFormatters,
+          keyboardType: keyboardType,
           style: TextStyle(
             color: MainColor().textPrimary,
             fontSize: FontSizes().body,
@@ -1228,7 +1410,7 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  _updateData(String uuid) async {
+  _updateData<T extends UserModel>(T user) async {
     if (currentUser != null && currentUser!.email != _emailController.text) {
       // Intercept the save process and request re-authentication.
       bool? reauthenticated = await onPasswordVerify();
@@ -1245,13 +1427,30 @@ class _ProfileState extends State<Profile> {
       }
     }
     _setSaving();
-    var updatedUserData = new UserModel(
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
-      uuid: uuid,
-      email: _emailController.text,
-      mobileNumber: _mobileNumberController.text,
-    );
+
+    var updatedUserData = user is EnforcerModel
+        ? EnforcerModel(
+            firstName: _firstNameController.text,
+            lastName: _lastNameController.text,
+            email: _emailController.text,
+            mobileNumber: _mobileNumberController.text,
+            createdAt: null,
+            roles: [],
+          )
+        : DriverModel(
+            firstName: _firstNameController.text,
+            lastName: _lastNameController.text,
+            email: _emailController.text,
+            mobileNumber: _mobileNumberController.text,
+            plateNumber: _plateNumberController.text.isEmpty
+                ? null
+                : _plateNumberController.text,
+            driverLicenseNumber: _licenseNumberController.text.isEmpty
+                ? null
+                : _licenseNumberController.text,
+            createdAt: null,
+            roles: [],
+          );
 
     if (badgePhoto != null) {
       updatedUserData.tempBadgePhoto = badgePhoto;
@@ -1259,7 +1458,7 @@ class _ProfileState extends State<Profile> {
     if (userProfilePic != null) {
       updatedUserData.tempProfilePicture = userProfilePic;
     }
-    
+
     try {
       await handleSaveData(updatedUserData);
       setState(() {
@@ -1269,12 +1468,14 @@ class _ProfileState extends State<Profile> {
       _setSaving();
       if (mounted) {
         String successMessage = "Profile updated successfully!";
-        
+
         // Add special message if email was changed
-        if (currentUser != null && currentUser!.email != _emailController.text) {
-          successMessage += " Your email has been updated in both profile and authentication.";
+        if (currentUser != null &&
+            currentUser!.email != _emailController.text) {
+          successMessage +=
+              " Your email has been updated in both profile and authentication.";
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(successMessage),
@@ -1288,7 +1489,9 @@ class _ProfileState extends State<Profile> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to update profile: ${e.toString().replaceAll('Exception: ', '')}"),
+            content: Text(
+              "Failed to update profile: ${e.toString().replaceAll('Exception: ', '')}",
+            ),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
           ),

@@ -283,25 +283,18 @@ class _LoginPageState extends State<LoginPage> {
                                     );
                                   } catch (e) {
                                     if (mounted) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          title: Text('Error'),
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
                                           content: Text(
-                                            e.toString().replaceAll(
-                                              'Exception: ',
-                                              '',
-                                            ),
+                                          e.toString().replaceAll(
+                                            'Exception: ',
+                                            '',
                                           ),
-                                          actions: [
-                                            TextButton(
-                                              child: Text('OK'),
-                                              onPressed: () =>
-                                                  Navigator.of(context).pop(),
-                                            ),
-                                          ],
+                                          ),
+                                          backgroundColor: Colors.red,
+                                          behavior: SnackBarBehavior.floating,
                                         ),
-                                      );
+                                        );
                                     }
                                   }
                                 },

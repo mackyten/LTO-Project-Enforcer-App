@@ -4,7 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enforcer_auto_fine/pages/home/models.dart';
 import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/models/enforcer_model.dart';
-import 'package:enforcer_auto_fine/shared/models/user_model.dart' as UserModelWithRoles;
+import 'package:enforcer_auto_fine/shared/models/user_model.dart'
+    as UserModelWithRoles;
 import 'package:enforcer_auto_fine/shared/models/driver_model.dart';
 import 'package:enforcer_auto_fine/shared/models/response_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,12 +18,9 @@ class HomeHandlers {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Future<WeekleySummaryModel> getWeeklySummary() async {
-    // 1. Get total violations using the count() aggregation
-    final totalViolationsSnapshot = await _db
-        .collection('reports')
-        .count()
-        .get();
-    final int totalViolations = totalViolationsSnapshot.count ?? 0;
+    // 1. Get total violations using get() instead of count()
+    final totalViolationsSnapshot = await _db.collection('reports').get();
+    final int totalViolations = totalViolationsSnapshot.size;
 
     // 2. Get this week's violations
     final DateTime oneWeekAgo = DateTime.now().subtract(
@@ -34,9 +32,8 @@ class HomeHandlers {
           'createdAt',
           isGreaterThanOrEqualTo: Timestamp.fromDate(oneWeekAgo),
         )
-        .count()
         .get();
-    final int thisWeeksViolation = thisWeekSnapshot.count ?? 0;
+    final int thisWeeksViolation = thisWeekSnapshot.size;
 
     // 3. Get top 5 most common violations
     final allViolationsSnapshot = await _db
@@ -47,14 +44,20 @@ class HomeHandlers {
     // Collect all violations from all documents
     for (var doc in allViolationsSnapshot.docs) {
       final data = doc.data();
-      final List<dynamic> violationsData = data['violations'] as List<dynamic>;
-      
+      final List<dynamic>? violationsData =
+          data['violations'] as List<dynamic>?;
+
+      // Skip documents that don't have violations or have null violations
+      if (violationsData == null) continue;
+
       // Extract violation names from the ViolationModel objects
       for (var violationData in violationsData) {
         if (violationData is Map<String, dynamic>) {
           // New format with ViolationModel
-          final violationName = violationData['violationName'] as String;
-          allViolations.add(violationName);
+          final violationName = violationData['violationName'] as String?;
+          if (violationName != null) {
+            allViolations.add(violationName);
+          }
         } else if (violationData is String) {
           // Legacy format - just strings
           allViolations.add(violationData);
@@ -92,7 +95,11 @@ class HomeHandlers {
 
   Future<ResponseModel<UserModelWithRoles.UserModel>> fetchUserData() async {
     try {
-      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, null);
+      var response = ResponseModel<UserModelWithRoles.UserModel>(
+        null,
+        false,
+        null,
+      );
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         response.success = false;
@@ -105,7 +112,9 @@ class HomeHandlers {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        var data = UserModelWithRoles.UserModel.fromJson(querySnapshot.docs.first.data());
+        var data = UserModelWithRoles.UserModel.fromJson(
+          querySnapshot.docs.first.data(),
+        );
         response.data = data;
         response.success = true;
       } else {
@@ -121,11 +130,11 @@ class HomeHandlers {
   Future<List<ReportModel>> loadAllReportDrafts() async {
     final prefs = await SharedPreferences.getInstance();
     final currentUser = FirebaseAuth.instance.currentUser;
-    
+
     if (currentUser == null) {
       return []; // Return empty list if no user is authenticated
     }
-    
+
     final userUUID = currentUser.uid;
 
     // Get all keys and filter for those that start with 'draft_' and belong to current user
@@ -154,9 +163,14 @@ class HomeHandlers {
     return drafts;
   }
 
-  Future<ResponseModel<UserModelWithRoles.UserModel>> fetchUserDataWithRoles() async {
+  Future<ResponseModel<UserModelWithRoles.UserModel>>
+  fetchUserDataWithRoles() async {
     try {
-      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, null);
+      var response = ResponseModel<UserModelWithRoles.UserModel>(
+        null,
+        false,
+        null,
+      );
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         response.success = false;
@@ -171,7 +185,9 @@ class HomeHandlers {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        var data = UserModelWithRoles.UserModel.fromJson(querySnapshot.docs.first.data());
+        var data = UserModelWithRoles.UserModel.fromJson(
+          querySnapshot.docs.first.data(),
+        );
         response.data = data;
         response.success = true;
       } else {
@@ -181,22 +197,31 @@ class HomeHandlers {
 
       return response;
     } catch (e) {
-      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, e.toString());
+      var response = ResponseModel<UserModelWithRoles.UserModel>(
+        null,
+        false,
+        e.toString(),
+      );
       return response;
     }
   }
 
   /// Enhanced method that returns typed user data based on roles
-  Future<ResponseModel<UserModelWithRoles.UserModel>> fetchTypedUserData() async {
+  Future<ResponseModel<UserModelWithRoles.UserModel>>
+  fetchTypedUserData() async {
     try {
-      var response = ResponseModel<UserModelWithRoles.UserModel>(null, false, null);
+      var response = ResponseModel<UserModelWithRoles.UserModel>(
+        null,
+        false,
+        null,
+      );
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
         response.success = false;
         response.message = 'No authenticated user found';
         return response;
       }
-      
+
       final userUUID = currentUser.uid;
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -212,38 +237,70 @@ class HomeHandlers {
 
       // Get the raw data from Firestore
       final rawData = querySnapshot.docs.first.data();
-      
+
       // Parse roles to determine user type
-      final rolesList = rawData['roles'] as List<dynamic>?;
-      final roles = rolesList?.map((role) => UserRoles.values.firstWhere(
-            (e) => e.toString().split('.').last == role,
-            orElse: () => UserRoles.None,
-          )).toList() ?? [];
-      
+      final rolesList = rawData['roles'] != null
+          ? rawData['roles'] as List<dynamic>?
+          : [];
+      final roles =
+          rolesList
+              ?.map(
+                (role) {
+                  // Handle both number and string role formats
+                  if (role is int) {
+                    // Role is stored as number (index in enum)
+                    if (role >= 0 && role < UserRoles.values.length) {
+                      return UserRoles.values[role];
+                    }
+                    return UserRoles.None;
+                  } else if (role is String) {
+                    // Role is stored as string (fallback for compatibility)
+                    return UserRoles.values.firstWhere(
+                      (e) => e.toString().split('.').last == role,
+                      orElse: () => UserRoles.None,
+                    );
+                  }
+                  return UserRoles.None;
+                },
+              )
+              .toList() ??
+          [];
+
       // Check if user is a driver [UserRoles.None, UserRoles.Driver]
-      if (roles.length == 2 && 
-          roles.contains(UserRoles.None) && 
+      if (roles.length == 2 &&
+          roles.contains(UserRoles.None) &&
           roles.contains(UserRoles.Driver)) {
         // Create DriverModel directly from raw Firestore data
         final driverData = DriverModel.fromJson(rawData);
-        return ResponseModel<UserModelWithRoles.UserModel>(driverData, true, null);
+        return ResponseModel<UserModelWithRoles.UserModel>(
+          driverData,
+          true,
+          null,
+        );
       }
-      
-      // Check if user is an enforcer [UserRoles.None, UserRoles.Enforcer]  
-      if (roles.length == 2 && 
-          roles.contains(UserRoles.None) && 
+
+      // Check if user is an enforcer [UserRoles.None, UserRoles.Enforcer]
+      if (roles.length == 2 &&
+          roles.contains(UserRoles.None) &&
           roles.contains(UserRoles.Enforcer)) {
         // Create EnforcerModel directly from raw Firestore data
         final enforcerData = EnforcerModel.fromJson(rawData);
-        return ResponseModel<UserModelWithRoles.UserModel>(enforcerData, true, null);
+        return ResponseModel<UserModelWithRoles.UserModel>(
+          enforcerData,
+          true,
+          null,
+        );
       }
-      
+
       // For any other role combination, return the base user data
       final userData = UserModelWithRoles.UserModel.fromJson(rawData);
       return ResponseModel<UserModelWithRoles.UserModel>(userData, true, null);
-      
     } catch (e) {
-      return ResponseModel<UserModelWithRoles.UserModel>(null, false, e.toString());
+      return ResponseModel<UserModelWithRoles.UserModel>(
+        null,
+        false,
+        e.toString(),
+      );
     }
   }
 }

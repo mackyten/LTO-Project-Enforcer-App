@@ -18,6 +18,7 @@ import 'package:enforcer_auto_fine/shared/dialogs/alert_dialog.dart';
 import 'package:enforcer_auto_fine/utils/shared_preferences.dart';
 import 'package:enforcer_auto_fine/utils/local_file_saver.dart';
 import 'package:enforcer_auto_fine/utils/file_uploader.dart';
+import 'package:enforcer_auto_fine/utils/input_formatters.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -775,9 +776,12 @@ class _ViolationPageState extends State<ViolationPage>
             AppTextField(
               controller: _phoneController,
               label: 'Phone Number',
-              placeholder: '(123) 456-7890',
+              placeholder: '+63',
               required: true,
               keyboardType: TextInputType.phone,
+              inputFormatters: [
+                PhilippineMobileNumberFormatter(),
+              ],
             ),
             SizedBox(height: 20),
 

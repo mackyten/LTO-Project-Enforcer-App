@@ -222,7 +222,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                       Expanded(
                         child: _buildStatusCard(
                           'Pending',
-                          _statusCounts['pending'] ?? 0,
+                          _statusCounts['Pending'] ?? 0,
                           Colors.orange,
                           Icons.access_time,
                         ),
@@ -231,7 +231,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                       Expanded(
                         child: _buildStatusCard(
                           'Approved',
-                          _statusCounts['approved'] ?? 0,
+                          _statusCounts['Approved'] ?? 0,
                           Colors.green,
                           Icons.check_circle,
                         ),
@@ -240,7 +240,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                       Expanded(
                         child: _buildStatusCard(
                           'Rejected',
-                          _statusCounts['rejected'] ?? 0,
+                          _statusCounts['Rejected'] ?? 0,
                           Colors.red,
                           Icons.cancel,
                         ),
@@ -294,7 +294,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
         onPressed: () {
           Navigator.pushNamed(context, '/appeal');
         },
-        backgroundColor: MainColor().primary,
+        backgroundColor: MainColor().accent,
         foregroundColor: Colors.white,
         icon: Icon(Icons.add),
         label: Text('New Appeal'),

@@ -12,7 +12,8 @@ class Header extends StatelessWidget {
     required this.currentStep,
     required this.totalSteps,
     required this.previousStep,
-    required this.progressAnimation, required this.backHome,
+    required this.progressAnimation,
+    required this.backHome,
   });
 
   @override
@@ -31,9 +32,7 @@ class Header extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: currentStep > 0
-                    ? previousStep
-                    : backHome,
+                onTap: currentStep > 0 ? previousStep : backHome,
                 child: Text(
                   '← Back',
                   style: TextStyle(
@@ -70,15 +69,7 @@ class Header extends StatelessWidget {
               letterSpacing: -0.5,
             ),
           ),
-          SizedBox(height: 5),
-          Text(
-            'Help keep our community safe',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 17,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
+
           SizedBox(height: 20),
           LinearProgressIndicator(
             value: (currentStep + 1) / totalSteps,

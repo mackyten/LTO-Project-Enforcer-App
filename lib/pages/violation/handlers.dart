@@ -23,17 +23,22 @@ Future<List<ViolationModel>> _calculateViolationRepetitions(
     
     for (var doc in previousReportsSnapshot.docs) {
       final data = doc.data();
-      final List<dynamic> violationsData = data['violations'] as List<dynamic>;
+      final List<dynamic>? violationsData = data['violations'] as List<dynamic>?;
+      
+      // Skip documents that don't have violations or have null violations
+      if (violationsData == null) continue;
       
       for (var violationData in violationsData) {
         if (violationData is Map<String, dynamic>) {
           // New format with ViolationModel
-          final violationName = violationData['violationName'] as String;
-          violationCounts.update(
-            violationName,
-            (count) => count + 1,
-            ifAbsent: () => 1,
-          );
+          final violationName = violationData['violationName'] as String?;
+          if (violationName != null) {
+            violationCounts.update(
+              violationName,
+              (count) => count + 1,
+              ifAbsent: () => 1,
+            );
+          }
         } else if (violationData is String) {
           // Legacy format - just strings
           violationCounts.update(

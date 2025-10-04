@@ -12,7 +12,7 @@ class DriverModel extends UserModel {
     super.isDeleted,
     super.deletedAt,
     super.documentId,
-    required super.uuid,
+    super.uuid,
     required super.firstName,
     required super.lastName,
     super.middleName,
@@ -31,6 +31,7 @@ class DriverModel extends UserModel {
     final baseJson = super.toJson();
     return {
       ...baseJson,
+      'roles': roles?.map((role) => role.index).toList(),
       'driverLicenseNumber': driverLicenseNumber,
       'plateNumber': plateNumber,
     };
@@ -38,19 +39,19 @@ class DriverModel extends UserModel {
 
   factory DriverModel.fromJson(Map<String, dynamic> json) {
     return DriverModel(
-      createdAt: json['createdAt'] is Timestamp 
+      createdAt: json['createdAt'] is Timestamp
           ? (json['createdAt'] as Timestamp).toDate()
           : DateTime.parse(json['createdAt']),
-      lastUpdatedAt: json['lastUpdatedAt'] != null 
-          ? (json['lastUpdatedAt'] is Timestamp 
-              ? (json['lastUpdatedAt'] as Timestamp).toDate()
-              : DateTime.parse(json['lastUpdatedAt']))
+      lastUpdatedAt: json['lastUpdatedAt'] != null
+          ? (json['lastUpdatedAt'] is Timestamp
+                ? (json['lastUpdatedAt'] as Timestamp).toDate()
+                : DateTime.parse(json['lastUpdatedAt']))
           : null,
       isDeleted: json['isDeleted'],
-      deletedAt: json['deletedAt'] != null 
-          ? (json['deletedAt'] is Timestamp 
-              ? (json['deletedAt'] as Timestamp).toDate()
-              : DateTime.parse(json['deletedAt']))
+      deletedAt: json['deletedAt'] != null
+          ? (json['deletedAt'] is Timestamp
+                ? (json['deletedAt'] as Timestamp).toDate()
+                : DateTime.parse(json['deletedAt']))
           : null,
       documentId: json['documentId'],
       uuid: json['uuid'],
@@ -61,13 +62,28 @@ class DriverModel extends UserModel {
       mobileNumber: json['mobileNumber'],
       profilePictureUrl: json['profilePictureUrl'],
       roles: (json['roles'] as List<dynamic>)
-          .map((role) => UserRoles.values.firstWhere(
-                (e) => e.toString().split('.').last == role,
-                orElse: () => UserRoles.None,
-              ))
+          .map(
+            (role) {
+              // Handle both number and string role formats
+              if (role is int) {
+                // Role is stored as number (index in enum)
+                if (role >= 0 && role < UserRoles.values.length) {
+                  return UserRoles.values[role];
+                }
+                return UserRoles.None;
+              } else if (role is String) {
+                // Role is stored as string (fallback for compatibility)
+                return UserRoles.values.firstWhere(
+                  (e) => e.toString().split('.').last == role,
+                  orElse: () => UserRoles.None,
+                );
+              }
+              return UserRoles.None;
+            },
+          )
           .toList(),
-      queryKeys: json['queryKeys'] != null 
-          ? List<String>.from(json['queryKeys']) 
+      queryKeys: json['queryKeys'] != null
+          ? List<String>.from(json['queryKeys'])
           : null,
       temporaryPassword: json['temporaryPassword'],
       driverLicenseNumber: json['driverLicenseNumber'],

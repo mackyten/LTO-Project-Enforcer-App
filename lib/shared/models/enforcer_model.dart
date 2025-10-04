@@ -16,7 +16,7 @@ class EnforcerModel extends UserModel {
     super.isDeleted,
     super.deletedAt,
     super.documentId,
-    required super.uuid,
+     super.uuid,
     required super.firstName,
     required super.lastName,
     super.middleName,
@@ -67,10 +67,7 @@ class EnforcerModel extends UserModel {
       profilePictureUrl: json['profilePictureUrl'],
       roles: (json['roles'] as List<dynamic>)
           .map(
-            (role) => UserRoles.values.firstWhere(
-              (e) => e.toString().split('.').last == role,
-              orElse: () => UserRoles.None,
-            ),
+            (role) => UserRoles.values[role] ?? UserRoles.None,
           )
           .toList(),
       queryKeys: json['queryKeys'] != null

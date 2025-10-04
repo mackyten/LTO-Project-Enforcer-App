@@ -266,7 +266,7 @@ class _AppealPageState extends State<AppealPage> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitAppeal,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: MainColor().primary,
+                    backgroundColor: MainColor().accent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

@@ -20,8 +20,8 @@ class AppMainSideDrawerItem {
       route: '/profile',
     ),
     AppMainSideDrawerItem(
-      title: "Create a Ticket",
-      icon: Icon(Icons.receipt_long),
+      title: "New Report",
+      icon: Icon(Icons.add),
       route: '/violations',
     ),
   ];

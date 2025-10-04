@@ -4,6 +4,7 @@ import '../../shared/app_theme/colors.dart';
 import '../../shared/components/textfield/app_input_border.dart';
 import '../../shared/models/response_model.dart';
 import '../../shared/models/driver_model.dart';
+import '../../utils/input_formatters.dart';
 import 'driver_registration_service.dart';
 
 class DriverRegistrationPage extends StatefulWidget {
@@ -33,6 +34,13 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
   bool _isRegistering = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize mobile number with +63 prefix
+    _mobileNumberController.text = '+63';
+  }
 
   @override
   void dispose() {
@@ -225,9 +233,25 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   style: TextStyle(color: MainColor().textPrimary),
                   decoration: appInputDecoration("Mobile Number *"),
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    PhilippineMobileNumberFormatter(),
+                  ],
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Mobile number is required';
+                    }
+                    // Check if it's exactly 13 characters (+63 + 10 digits)
+                    if (value.length != 13) {
+                      return 'Mobile number must be exactly 10 digits after +63';
+                    }
+                    // Check if it starts with +63
+                    if (!value.startsWith('+63')) {
+                      return 'Mobile number must start with +63';
+                    }
+                    // Check if the part after +63 contains only digits
+                    String digits = value.substring(3);
+                    if (!RegExp(r'^\d{10}$').hasMatch(digits)) {
+                      return 'Mobile number must contain exactly 10 digits after +63';
                     }
                     return null;
                   },

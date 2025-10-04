@@ -9,7 +9,7 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
-            "preLaunchTask": "flutter-pre-launch"
+            // "preLaunchTask": "flutter-pre-launch"
         }
     ]
 }
