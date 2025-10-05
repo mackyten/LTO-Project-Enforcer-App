@@ -337,7 +337,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e) {
       // If auth fails with invalid-credential, check for temporary password
-      if (e.code == 'user-not-found') {
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         print('User not found in Firebase Auth, checking Firestore...');
 
         // Check Firestore for temporary password
