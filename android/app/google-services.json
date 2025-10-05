@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "150226999462",
-    "project_id": "lingayen-lto",
-    "storage_bucket": "lingayen-lto.firebasestorage.app"
+    "project_number": "437938064027",
+    "project_id": "autofine-918aa",
+    "storage_bucket": "autofine-918aa.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:150226999462:android:b1dba8d3e45a6cb1803c67",
+        "mobilesdk_app_id": "1:437938064027:android:9edbc7b5ec3462c39d143e",
         "android_client_info": {
           "package_name": "com.example.enforcer_auto_fine"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyATY5vx4rfAREgBIzDhx-BceEE4yfo31lU"
+          "current_key": "AIzaSyBRPseqe8vm1DCVxLN1lPoAoeDtThHr5xE"
         }
       ],
       "services": {

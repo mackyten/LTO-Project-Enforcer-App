@@ -23,10 +23,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Check if Firebase is already initialized to prevent duplicate initialization
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    print('Firebase initialized successfully!');
+  } else {
+    print('Firebase already initialized');
+  }
+  
   await dotenv.load(fileName: ".env");
-
-  print('Firebase initialized successfully!');
   runApp(const MyApp());
 }
 

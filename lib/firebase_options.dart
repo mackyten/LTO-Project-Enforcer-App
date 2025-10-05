@@ -41,46 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC6FpVQAnUSA1VNbtSSDYTw-0GKDdeNX2U',
-    appId: '1:150226999462:web:9e91485a2373f747803c67',
-    messagingSenderId: '150226999462',
-    projectId: 'lingayen-lto',
-    authDomain: 'lingayen-lto.firebaseapp.com',
-    storageBucket: 'lingayen-lto.firebasestorage.app',
+    apiKey: 'AIzaSyBRPseqe8vm1DCVxLN1lPoAoeDtThHr5xE',
+    appId: '1:437938064027:web:9edbc7b5ec3462c39d143e',
+    messagingSenderId: '437938064027',
+    projectId: 'autofine-918aa',
+    authDomain: 'autofine-918aa.firebaseapp.com',
+    storageBucket: 'autofine-918aa.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyATY5vx4rfAREgBIzDhx-BceEE4yfo31lU',
-    appId: '1:150226999462:android:b1dba8d3e45a6cb1803c67',
-    messagingSenderId: '150226999462',
-    projectId: 'lingayen-lto',
-    storageBucket: 'lingayen-lto.firebasestorage.app',
+    apiKey: 'AIzaSyBRPseqe8vm1DCVxLN1lPoAoeDtThHr5xE',
+    appId: '1:437938064027:android:9edbc7b5ec3462c39d143e',
+    messagingSenderId: '437938064027',
+    projectId: 'autofine-918aa',
+    storageBucket: 'autofine-918aa.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyADBqRwyPWTovlKkp7E9WZgHVdAd2x_W_g',
-    appId: '1:150226999462:ios:302f7e493cd24cfc803c67',
-    messagingSenderId: '150226999462',
-    projectId: 'lingayen-lto',
-    storageBucket: 'lingayen-lto.firebasestorage.app',
-    iosBundleId: 'com.example.enforcerAutoFine',
+    apiKey: 'AIzaSyBRPseqe8vm1DCVxLN1lPoAoeDtThHr5xE',
+    appId: '1:437938064027:ios:9edbc7b5ec3462c39d143e',
+    messagingSenderId: '437938064027',
+    projectId: 'autofine-918aa',
+    storageBucket: 'autofine-918aa.firebasestorage.app',
+    iosBundleId: 'com.example.autofine_app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyADBqRwyPWTovlKkp7E9WZgHVdAd2x_W_g',
-    appId: '1:150226999462:ios:302f7e493cd24cfc803c67',
-    messagingSenderId: '150226999462',
-    projectId: 'lingayen-lto',
-    storageBucket: 'lingayen-lto.firebasestorage.app',
-    iosBundleId: 'com.example.enforcerAutoFine',
+    apiKey: 'AIzaSyBRPseqe8vm1DCVxLN1lPoAoeDtThHr5xE',
+    appId: '1:437938064027:ios:9edbc7b5ec3462c39d143e',
+    messagingSenderId: '437938064027',
+    projectId: 'autofine-918aa',
+    storageBucket: 'autofine-918aa.firebasestorage.app',
+    iosBundleId: 'com.example.autofine_app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyC6FpVQAnUSA1VNbtSSDYTw-0GKDdeNX2U',
-    appId: '1:150226999462:web:545b9bc452157485803c67',
-    messagingSenderId: '150226999462',
-    projectId: 'lingayen-lto',
-    authDomain: 'lingayen-lto.firebaseapp.com',
-    storageBucket: 'lingayen-lto.firebasestorage.app',
+    apiKey: 'AIzaSyBRPseqe8vm1DCVxLN1lPoAoeDtThHr5xE',
+    appId: '1:437938064027:web:9edbc7b5ec3462c39d143e',
+    messagingSenderId: '437938064027',
+    projectId: 'autofine-918aa',
+    authDomain: 'autofine-918aa.firebaseapp.com',
+    storageBucket: 'autofine-918aa.firebasestorage.app',
   );
 }
