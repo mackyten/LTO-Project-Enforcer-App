@@ -176,8 +176,8 @@ class PayMongoService {
               'amount': amount,
               'currency': currency,
               'redirect': {
-                'success': "https://lingayen-lto.web.app/success-payment?source_id=$internalId",
-                'failed': "https://lingayen-lto.web.app/failed-payment?source_id=$internalId",
+                'success': "https://autofine-918aa.web.app/success-payment?source_id=$internalId",
+                'failed': "https://autofine-918aa.web.app/failed-payment?source_id=$internalId",
               },
               'billing': billing,
             },
