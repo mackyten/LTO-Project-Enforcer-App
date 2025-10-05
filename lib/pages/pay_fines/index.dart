@@ -885,6 +885,6 @@ class _PayFinesPageState extends State<PayFinesPage> {
     ));
     
     // Format: LTO-XXXXXX-YYYY (14 characters total)
-    return 'LTO-$timestampSuffix-$randomChars';
+    return 'ATF-$timestampSuffix-$randomChars';
   }
 }
