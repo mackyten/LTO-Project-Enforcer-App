@@ -8,11 +8,12 @@ import 'package:enforcer_auto_fine/utils/generate_query_key_prefixes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 Future<void> handleSaveData<T extends UserModel>(T user) async {
+  final currentUser = FirebaseAuth.instance.currentUser;
   final db = FirebaseFirestore.instance;
 
   final querySnapshot = await db
       .collection(Collections.users.name)
-      .where('uuid', isEqualTo: user.uuid)
+      .where('uuid', isEqualTo: currentUser?.uid)
       .limit(1)
       .get();
 
@@ -29,7 +30,6 @@ Future<void> handleSaveData<T extends UserModel>(T user) async {
     final String currentEmail = userDataMap['email'] ?? "";
 
     // Check if email has changed and update Firebase Auth if needed
-    final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null &&
         user.email != currentEmail &&
         user.email.isNotEmpty) {

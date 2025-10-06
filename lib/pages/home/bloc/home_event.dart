@@ -8,3 +8,5 @@ abstract class HomeEvent extends Equatable {
 }
 
 class FetchHomeData extends HomeEvent {}
+
+class ResetHomeData extends HomeEvent {}

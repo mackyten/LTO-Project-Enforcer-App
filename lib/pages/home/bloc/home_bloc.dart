@@ -17,6 +17,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   HomeBloc() : super(HomeInitial()) {
     on<FetchHomeData>(_onFetchHomeData);
+    on<ResetHomeData>(_onResetHomeData);
   }
 
   Future<void> _onFetchHomeData(
@@ -66,5 +67,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       emit(HomeError(message: e.toString()));
     }
+  }
+
+  void _onResetHomeData(ResetHomeData event, Emitter<HomeState> emit) {
+    emit(HomeInitial());
   }
 }
