@@ -26,15 +26,18 @@ class Greetings extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16.0, 30.0, 16.0, 30.0),
           child: Row(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${getGreeting()}, $firstName!',
-                    style: TextStyle(fontSize: FontSizes().h3, fontWeight: FontWeight.bold),
-                  ),
-                  Text('Welcome to the Enforcer Auto Fine App.'),
-                ],
+              SizedBox(
+                width: MediaQuery.of(context).size.width -150,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${getGreeting()}, $firstName!',
+                      style: TextStyle(fontSize: FontSizes().h3, fontWeight: FontWeight.bold),
+                    ),
+                    Text('Welcome to the Enforcer Auto Fine App.'),
+                  ],
+                ),
               ),
               const Spacer(),
 
