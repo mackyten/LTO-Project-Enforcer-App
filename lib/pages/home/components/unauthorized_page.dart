@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../shared/app_theme/colors.dart';
 import '../../../shared/app_theme/fonts.dart';
 import '../../../pages/auth/handlers.dart';
+import '../bloc/home_bloc.dart';
 
 class UnauthorizedPage extends StatefulWidget {
   const UnauthorizedPage({super.key});
@@ -150,6 +152,9 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
     });
 
     try {
+      // Reset HomeBloc state before logging out
+      context.read<HomeBloc>().add(ResetHomeData());
+      
       await signOut(context);
     } catch (e) {
       print("Sign out failed: $e");

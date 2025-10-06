@@ -124,6 +124,9 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
                     });
 
                     try {
+                      // Reset HomeBloc state before logging out
+                      context.read<HomeBloc>().add(ResetHomeData());
+                      
                       // Wait for the sign out operation to complete
                       await signOut(context);
 
