@@ -1,5 +1,7 @@
 # LTO Enforcer App
 
+[![CI](https://github.com/mackyten/LTO-Project-Enforcer-App/actions/workflows/ci.yml/badge.svg)](https://github.com/mackyten/LTO-Project-Enforcer-App/actions/workflows/ci.yml)
+
 A Flutter mobile app for traffic enforcement. Enforcers record violations in the field, drivers review and pay their fines, and appeals are routed to administrators. The admin side lives in [LTO-Project-Admin-App](https://github.com/mackyten/LTO-Project-Admin-App).
 
 ## Features
