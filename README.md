@@ -1,17 +1,44 @@
-# enforcer_auto_fine
+# LTO Enforcer App
 
-A new Flutter project.
+A Flutter mobile app for traffic enforcement. Enforcers record violations in the field, drivers review and pay their fines, and appeals are routed to administrators. The admin side lives in [LTO-Project-Admin-App](https://github.com/mackyten/LTO-Project-Admin-App).
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- **Role-based access**: enforcers and drivers get different home screens and navigation drawers.
+- **Violation reporting**: enforcers file reports with photo evidence.
+- **Driver registration and profile**: drivers register and manage their own details.
+- **Fines and payments**: drivers pay fines online through PayMongo (GCash, GrabPay, card).
+- **Appeals**: drivers contest a violation; the outcome is tracked in the app.
+- **Deep links**: payment providers return the user to the correct screen after checkout.
 
-A few resources to get you started if this is your first Flutter project:
+## Tech stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Flutter / Dart, with `flutter_bloc` for state management
+- Firebase Auth and Cloud Firestore
+- PayMongo, called directly over HTTP (no SDK), see [PAYMONGO_INTEGRATION.md](PAYMONGO_INTEGRATION.md)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# LTO-Project-Enforcer-App
+## Project layout
+
+```
+lib/
+  pages/       feature screens (violation, pay_fines, payment, appeal, profile, ...)
+  services/    PayMongo and payment services
+  shared/      theme, reusable components, helpers
+  enums/       roles, Firestore collections
+```
+
+## Getting started
+
+```bash
+flutter pub get
+flutter run
+```
+
+You need your own Firebase project (`flutterfire configure`) and a PayMongo test key. Keep keys out of version control.
+
+## Further reading
+
+- [PAYMONGO_INTEGRATION.md](PAYMONGO_INTEGRATION.md): payment flow and why it uses plain HTTP
+- [PAY_FINES_DOCUMENTATION.md](PAY_FINES_DOCUMENTATION.md): how fines are paid
+- [DEEP_LINK_SETUP.md](DEEP_LINK_SETUP.md): return-from-payment deep linking
+- [VIOLATION_SYSTEM_UPDATE.md](VIOLATION_SYSTEM_UPDATE.md): violation model changes
