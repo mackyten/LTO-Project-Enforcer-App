@@ -2,9 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 // Assuming you have a file with your custom colors
-import 'package:enforcer_auto_fine/shared/app_theme/colors.dart'; 
+import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 
-class GlassmorphismAppBar extends StatelessWidget implements PreferredSizeWidget {
+class GlassmorphismAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   final Widget? title;
   final Widget? leading;
   final List<Widget>? actions;
@@ -12,7 +13,8 @@ class GlassmorphismAppBar extends StatelessWidget implements PreferredSizeWidget
   const GlassmorphismAppBar({
     super.key,
     this.title,
-    this.actions, this.leading,
+    this.actions,
+    this.leading,
   });
 
   @override
@@ -31,7 +33,7 @@ class GlassmorphismAppBar extends StatelessWidget implements PreferredSizeWidget
             leading: leading,
             actions: actions,
             elevation: 0.0,
-            backgroundColor: Colors.black.withOpacity(0.2),
+            backgroundColor: Colors.black.withValues(alpha: 0.2),
             foregroundColor: MainColor().textPrimary,
           ),
         ),

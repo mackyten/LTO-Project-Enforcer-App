@@ -1,6 +1,5 @@
 import 'package:enforcer_auto_fine/pages/home/components/title.dart';
 import 'package:enforcer_auto_fine/pages/home/models.dart';
-import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,7 @@ class WeeklySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Card(
         child: Padding(

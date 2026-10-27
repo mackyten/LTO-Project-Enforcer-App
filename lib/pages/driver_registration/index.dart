@@ -26,7 +26,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
   final _mobileNumberController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   // Controllers for optional fields
   final _middleNameController = TextEditingController();
   final _driverLicenseNumberController = TextEditingController();
@@ -66,8 +66,6 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
     );
   }
 
-
-
   Future<void> _registerDriver() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -83,20 +81,22 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
     });
 
     try {
-      ResponseModel<DriverModel> response = await _driverRegistrationService.registerDriver(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        plateNumber: _plateNumberController.text.trim().toUpperCase(),
-        mobileNumber: _mobileNumberController.text.trim(),
-        middleName: _middleNameController.text.trim().isEmpty 
-            ? null 
-            : _middleNameController.text.trim(),
-        driverLicenseNumber: _driverLicenseNumberController.text.trim().isEmpty 
-            ? null 
-            : _driverLicenseNumberController.text.trim(),
-      );
+      ResponseModel<DriverModel> response = await _driverRegistrationService
+          .registerDriver(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            firstName: _firstNameController.text.trim(),
+            lastName: _lastNameController.text.trim(),
+            plateNumber: _plateNumberController.text.trim().toUpperCase(),
+            mobileNumber: _mobileNumberController.text.trim(),
+            middleName: _middleNameController.text.trim().isEmpty
+                ? null
+                : _middleNameController.text.trim(),
+            driverLicenseNumber:
+                _driverLicenseNumberController.text.trim().isEmpty
+                ? null
+                : _driverLicenseNumberController.text.trim(),
+          );
 
       if (response.success) {
         _showSnackBar('Registration successful!');
@@ -146,7 +146,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   ),
                 ),
                 SizedBox(height: 30),
-                
+
                 // Required Fields Section
                 Text(
                   'Required Information',
@@ -157,7 +157,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   ),
                 ),
                 SizedBox(height: 16),
-                
+
                 // Plate Number
                 TextFormField(
                   controller: _plateNumberController,
@@ -165,22 +165,24 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   decoration: appInputDecoration("Plate Number *"),
                   textCapitalization: TextCapitalization.characters,
                   inputFormatters: [
-                    LengthLimitingTextInputFormatter(8), // Max 8 characters for Philippine plates
+                    LengthLimitingTextInputFormatter(
+                      8,
+                    ), // Max 8 characters for Philippine plates
                   ],
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Plate number is required';
                     }
-                    
+
                     if (value.trim().length > 8) {
                       return 'Plate number cannot exceed 8 characters';
                     }
-                    
+
                     return null;
                   },
                 ),
                 SizedBox(height: 16),
-                
+
                 // First Name
                 TextFormField(
                   controller: _firstNameController,
@@ -194,7 +196,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   },
                 ),
                 SizedBox(height: 16),
-                
+
                 // Last Name
                 TextFormField(
                   controller: _lastNameController,
@@ -208,7 +210,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   },
                 ),
                 SizedBox(height: 16),
-                
+
                 // Email
                 TextFormField(
                   controller: _emailController,
@@ -219,23 +221,23 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Email is required';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
                 SizedBox(height: 16),
-                
+
                 // Mobile Number
                 TextFormField(
                   controller: _mobileNumberController,
                   style: TextStyle(color: MainColor().textPrimary),
                   decoration: appInputDecoration("Mobile Number *"),
                   keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    PhilippineMobileNumberFormatter(),
-                  ],
+                  inputFormatters: [PhilippineMobileNumberFormatter()],
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Mobile number is required';
@@ -257,7 +259,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   },
                 ),
                 SizedBox(height: 16),
-                
+
                 // Password
                 TextFormField(
                   controller: _passwordController,
@@ -265,7 +267,9 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   decoration: appInputDecoration("Password *").copyWith(
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: MainColor().textPrimary,
                       ),
                       onPressed: () {
@@ -287,7 +291,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   },
                 ),
                 SizedBox(height: 16),
-                
+
                 // Confirm Password
                 TextFormField(
                   controller: _confirmPasswordController,
@@ -295,7 +299,9 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   decoration: appInputDecoration("Confirm Password *").copyWith(
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        _obscureConfirmPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: MainColor().textPrimary,
                       ),
                       onPressed: () {
@@ -314,7 +320,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   },
                 ),
                 SizedBox(height: 24),
-                
+
                 // Optional Fields Section
                 Text(
                   'Optional Information',
@@ -325,7 +331,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   ),
                 ),
                 SizedBox(height: 16),
-                
+
                 // Middle Name
                 TextFormField(
                   controller: _middleNameController,
@@ -333,7 +339,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   decoration: appInputDecoration("Middle Name"),
                 ),
                 SizedBox(height: 16),
-                
+
                 // Driver License Number
                 TextFormField(
                   controller: _driverLicenseNumberController,
@@ -341,14 +347,16 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   decoration: appInputDecoration("Driver License Number"),
                 ),
                 SizedBox(height: 32),
-                
+
                 // Register Button
                 SizedBox(
                   height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: MainColor().accent,
-                      disabledBackgroundColor: Colors.grey.withOpacity(0.5),
+                      disabledBackgroundColor: Colors.grey.withValues(
+                        alpha: 0.5,
+                      ),
                     ),
                     onPressed: _isRegistering ? null : _registerDriver,
                     child: _isRegistering
@@ -357,7 +365,9 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : Text(
@@ -370,7 +380,7 @@ class _DriverRegistrationPageState extends State<DriverRegistrationPage> {
                   ),
                 ),
                 SizedBox(height: 16),
-                
+
                 // Back to Login Button
                 TextButton(
                   style: TextButton.styleFrom(

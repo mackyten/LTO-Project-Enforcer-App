@@ -82,27 +82,23 @@ class UserModel extends FirestoreBaseModel {
       email: json['email'],
       mobileNumber: json['mobileNumber'],
       profilePictureUrl: json['profilePictureUrl'],
-      roles: (json['roles'] as List<dynamic>)
-          .map(
-            (role) {
-              // Handle both number and string role formats
-              if (role is int) {
-                // Role is stored as number (index in enum)
-                if (role >= 0 && role < UserRoles.values.length) {
-                  return UserRoles.values[role];
-                }
-                return UserRoles.None;
-              } else if (role is String) {
-                // Role is stored as string (fallback for compatibility)
-                return UserRoles.values.firstWhere(
-                  (e) => e.toString().split('.').last == role,
-                  orElse: () => UserRoles.None,
-                );
-              }
-              return UserRoles.None;
-            },
-          )
-          .toList(),
+      roles: (json['roles'] as List<dynamic>).map((role) {
+        // Handle both number and string role formats
+        if (role is int) {
+          // Role is stored as number (index in enum)
+          if (role >= 0 && role < UserRoles.values.length) {
+            return UserRoles.values[role];
+          }
+          return UserRoles.None;
+        } else if (role is String) {
+          // Role is stored as string (fallback for compatibility)
+          return UserRoles.values.firstWhere(
+            (e) => e.toString().split('.').last == role,
+            orElse: () => UserRoles.None,
+          );
+        }
+        return UserRoles.None;
+      }).toList(),
       queryKeys: json['queryKeys'] != null
           ? List<String>.from(json['queryKeys'])
           : null,
@@ -110,6 +106,7 @@ class UserModel extends FirestoreBaseModel {
     );
   }
 
+  @override
   UserModel copyWith({
     DateTime? createdAt,
     DateTime? lastUpdatedAt,

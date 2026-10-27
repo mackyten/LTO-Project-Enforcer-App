@@ -3,6 +3,7 @@ import 'package:enforcer_auto_fine/pages/home/bloc/home_bloc.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/colors.dart';
 import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/shared/components/side_drawer/items.dart';
+import 'package:enforcer_auto_fine/shared/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -105,13 +106,13 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
                   iconColor: MainColor().textPrimary,
                   leading: isLoggingOut
                       ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
                             color: MainColor()
                                 .textPrimary, // Optional: customize the color
                           ),
-                      )
+                        )
                       : Icon(Icons.logout),
                   title: Text("Logout"),
                   onTap: () async {
@@ -126,7 +127,7 @@ class _AppMainSideDrawerState extends State<AppMainSideDrawer> {
                     try {
                       // Reset HomeBloc state before logging out
                       context.read<HomeBloc>().add(ResetHomeData());
-                      
+
                       // Wait for the sign out operation to complete
                       await signOut(context);
 

@@ -18,18 +18,14 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
   final ScrollController _scrollController = ScrollController();
   final DriverAppealsHandlers _handlers = DriverAppealsHandlers();
   final List<AppealModel> _appeals = [];
-  
+
   DocumentSnapshot? _lastDocument;
   bool _isLoading = false;
   bool _hasMoreData = true;
   bool _isInitialLoad = true;
   final int _pageSize = 10;
-  
-  Map<String, int> _statusCounts = {
-    'Pending': 0,
-    'Approved': 0,
-    'Rejected': 0,
-  };
+
+  Map<String, int> _statusCounts = {'Pending': 0, 'Approved': 0, 'Rejected': 0};
 
   @override
   void initState() {
@@ -77,10 +73,12 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
 
       if (snapshot.docs.isNotEmpty) {
         final List<AppealModel> newAppeals = snapshot.docs
-            .map((doc) => AppealModel.fromJson({
-                  ...doc.data() as Map<String, dynamic>,
-                  'id': doc.id,
-                }))
+            .map(
+              (doc) => AppealModel.fromJson({
+                ...doc.data() as Map<String, dynamic>,
+                'id': doc.id,
+              }),
+            )
             .toList();
 
         setState(() {
@@ -126,10 +124,12 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
 
       if (snapshot.docs.isNotEmpty) {
         final List<AppealModel> newAppeals = snapshot.docs
-            .map((doc) => AppealModel.fromJson({
-                  ...doc.data() as Map<String, dynamic>,
-                  'id': doc.id,
-                }))
+            .map(
+              (doc) => AppealModel.fromJson({
+                ...doc.data() as Map<String, dynamic>,
+                'id': doc.id,
+              }),
+            )
             .toList();
 
         setState(() {
@@ -195,9 +195,9 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,9 +306,9 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -326,7 +326,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
             title,
             style: TextStyle(
               fontSize: FontSizes().caption,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -344,7 +344,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
             Icon(
               Icons.gavel,
               size: 80,
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
             ),
             SizedBox(height: 24),
             Text(
@@ -361,7 +361,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: FontSizes().body,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
             SizedBox(height: 24),
@@ -394,9 +394,9 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -415,7 +415,9 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(appeal.status).withOpacity(0.2),
+                          color: _getStatusColor(
+                            appeal.status,
+                          ).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -444,7 +446,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                                   : appeal.reasonForAppeal,
                               style: TextStyle(
                                 fontSize: FontSizes().body,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                             ),
                             SizedBox(height: 8),
@@ -453,14 +455,14 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                                 Icon(
                                   Icons.calendar_today,
                                   size: 14,
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: Colors.white.withValues(alpha: 0.6),
                                 ),
                                 SizedBox(width: 4),
                                 Text(
                                   DateFormatter.format(appeal.createdAt),
                                   style: TextStyle(
                                     fontSize: FontSizes().caption,
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: Colors.white.withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -474,10 +476,14 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(appeal.status).withOpacity(0.2),
+                          color: _getStatusColor(
+                            appeal.status,
+                          ).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: _getStatusColor(appeal.status).withOpacity(0.5),
+                            color: _getStatusColor(
+                              appeal.status,
+                            ).withValues(alpha: 0.5),
                           ),
                         ),
                         child: Text(
@@ -547,7 +553,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
               height: 5,
               margin: EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -562,7 +568,9 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(appeal.status).withOpacity(0.2),
+                            color: _getStatusColor(
+                              appeal.status,
+                            ).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
@@ -598,10 +606,16 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                       ],
                     ),
                     SizedBox(height: 24),
-                    
-                    _buildDetailRow('Violation Tracking Number', appeal.violationTrackingNumber),
-                    _buildDetailRow('Date Submitted', DateFormatter.format(appeal.createdAt)),
-                    
+
+                    _buildDetailRow(
+                      'Violation Tracking Number',
+                      appeal.violationTrackingNumber,
+                    ),
+                    _buildDetailRow(
+                      'Date Submitted',
+                      DateFormatter.format(appeal.createdAt),
+                    ),
+
                     SizedBox(height: 16),
                     Text(
                       'Reason for Appeal',
@@ -616,19 +630,20 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                       width: double.infinity,
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         appeal.reasonForAppeal,
                         style: TextStyle(
                           fontSize: FontSizes().body,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                         ),
                       ),
                     ),
 
-                    if (appeal.uploadedDocuments.isNotEmpty || appeal.supportingDocuments.isNotEmpty) ...[
+                    if (appeal.uploadedDocuments.isNotEmpty ||
+                        appeal.supportingDocuments.isNotEmpty) ...[
                       SizedBox(height: 16),
                       Text(
                         'Attached Documents',
@@ -643,13 +658,13 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                         'Documents: ${appeal.uploadedDocuments.length + appeal.supportingDocuments.length} file(s)',
                         style: TextStyle(
                           fontSize: FontSizes().caption,
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
 
                     Spacer(),
-                    
+
                     if (appeal.status == 'pending')
                       SizedBox(
                         width: double.infinity,
@@ -664,20 +679,20 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
                           ),
                         ),
                       ),
-                    
+
                     SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text('Close'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: BorderSide(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                           padding: EdgeInsets.symmetric(vertical: 16),
                         ),
+                        child: Text('Close'),
                       ),
                     ),
                   ],
@@ -702,7 +717,7 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
               label,
               style: TextStyle(
                 fontSize: FontSizes().body,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -738,11 +753,11 @@ class _DriverAppealsPageState extends State<DriverAppealsPage> {
             onPressed: () async {
               Navigator.pop(context); // Close confirmation dialog
               Navigator.pop(context); // Close details modal
-              
+
               try {
                 await _handlers.deleteAppeal(appeal.id!);
                 await _refreshAppeals();
-                
+
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

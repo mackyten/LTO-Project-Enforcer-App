@@ -64,9 +64,11 @@ class _PayFinesPageState extends State<PayFinesPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
+                    color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Colors.green.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +92,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
                         'Enter your violation tracking number to view and pay your outstanding fines securely.',
                         style: TextStyle(
                           fontSize: FontSizes().body,
-                          color: MainColor().textPrimary.withOpacity(0.8),
+                          color: MainColor().textPrimary.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -210,9 +212,9 @@ class _PayFinesPageState extends State<PayFinesPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -243,7 +245,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
               _buildDetailRow('Status', _foundReport!.status),
 
               SizedBox(height: 12),
-              Divider(color: Colors.white.withOpacity(0.3)),
+              Divider(color: Colors.white.withValues(alpha: 0.3)),
               SizedBox(height: 12),
 
               Text(
@@ -256,37 +258,35 @@ class _PayFinesPageState extends State<PayFinesPage> {
               ),
               SizedBox(height: 8),
 
-              ..._foundReport!.violations
-                  .map(
-                    (violation) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              violation.violationName,
-                              style: TextStyle(
-                                fontSize: FontSizes().caption,
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                            ),
+              ..._foundReport!.violations.map(
+                (violation) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          violation.violationName,
+                          style: TextStyle(
+                            fontSize: FontSizes().caption,
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
-                          Text(
-                            PaymentHandler.formatAmount(violation.price),
-                            style: TextStyle(
-                              fontSize: FontSizes().caption,
-                              color: Colors.white.withOpacity(0.8),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
+                      Text(
+                        PaymentHandler.formatAmount(violation.price),
+                        style: TextStyle(
+                          fontSize: FontSizes().caption,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
               SizedBox(height: 12),
-              Divider(color: Colors.white.withOpacity(0.3)),
+              Divider(color: Colors.white.withValues(alpha: 0.3)),
               SizedBox(height: 12),
 
               // Subtotal
@@ -297,7 +297,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
                     'Subtotal:',
                     style: TextStyle(
                       fontSize: FontSizes().body,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   Text(
@@ -306,7 +306,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
                     ),
                     style: TextStyle(
                       fontSize: FontSizes().body,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -321,7 +321,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
                     'Processing Fee (2.5%):',
                     style: TextStyle(
                       fontSize: FontSizes().body,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                   Text(
@@ -332,14 +332,14 @@ class _PayFinesPageState extends State<PayFinesPage> {
                     ),
                     style: TextStyle(
                       fontSize: FontSizes().body,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 8),
 
-              Divider(color: Colors.white.withOpacity(0.3)),
+              Divider(color: Colors.white.withValues(alpha: 0.3)),
               SizedBox(height: 8),
 
               // Total
@@ -417,9 +417,9 @@ class _PayFinesPageState extends State<PayFinesPage> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+            border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,7 +446,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
                 '• Keep your receipt for records',
                 style: TextStyle(
                   fontSize: FontSizes().caption,
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -466,7 +466,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
             label,
             style: TextStyle(
               fontSize: FontSizes().caption,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           Text(
@@ -700,7 +700,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
     try {
       final sourceId = paymentResult['source_id'];
       final currentUser = FirebaseAuth.instance.currentUser;
-      
+
       final paymentData = {
         'paymentId': internalId,
         'sourceId': sourceId,
@@ -794,7 +794,7 @@ class _PayFinesPageState extends State<PayFinesPage> {
       }
     } catch (e) {
       print('Error updating violation status: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -875,15 +875,18 @@ class _PayFinesPageState extends State<PayFinesPage> {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = Random();
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    
+
     // Get last 6 digits of timestamp for uniqueness
     final timestampSuffix = (timestamp % 1000000).toString().padLeft(6, '0');
-    
+
     // Generate 4 random characters
-    final randomChars = String.fromCharCodes(Iterable.generate(
-      4, (_) => chars.codeUnitAt(random.nextInt(chars.length))
-    ));
-    
+    final randomChars = String.fromCharCodes(
+      Iterable.generate(
+        4,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
+    );
+
     // Format: LTO-XXXXXX-YYYY (14 characters total)
     return 'ATF-$timestampSuffix-$randomChars';
   }

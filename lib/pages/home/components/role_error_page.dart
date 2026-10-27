@@ -28,7 +28,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.orange.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -38,7 +38,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
             ),
           ),
           SizedBox(height: 30),
-          
+
           // Title
           Text(
             'Account Configuration Error',
@@ -50,7 +50,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 15),
-          
+
           // Subtitle
           Text(
             'Multiple Roles Detected',
@@ -62,14 +62,14 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 20),
-          
+
           // Description
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.05),
+              color: Colors.orange.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange.withOpacity(0.2)),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -77,7 +77,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
                   'Your account has been assigned too many roles (${widget.userRoles.length} roles). This configuration is not supported by the mobile application.',
                   style: TextStyle(
                     fontSize: FontSizes().body,
-                    color: MainColor().textPrimary.withOpacity(0.8),
+                    color: MainColor().textPrimary.withValues(alpha: 0.8),
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -97,9 +97,12 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
                   runSpacing: 4,
                   children: widget.userRoles.map((role) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.2),
+                        color: Colors.orange.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -117,12 +120,12 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
             ),
           ),
           SizedBox(height: 30),
-          
+
           // Instructions
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: MainColor().primary.withOpacity(0.1),
+              color: MainColor().primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -154,7 +157,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
                   '3. Ensure only appropriate roles are assigned',
                   style: TextStyle(
                     fontSize: FontSizes().caption,
-                    color: MainColor().textPrimary.withOpacity(0.7),
+                    color: MainColor().textPrimary.withValues(alpha: 0.7),
                     height: 1.4,
                   ),
                 ),
@@ -162,7 +165,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
             ),
           ),
           SizedBox(height: 30),
-          
+
           // Logout Button
           SizedBox(
             width: double.infinity,
@@ -171,7 +174,7 @@ class _RoleErrorPageState extends State<RoleErrorPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey.withOpacity(0.5),
+                disabledBackgroundColor: Colors.grey.withValues(alpha: 0.5),
               ),
               onPressed: isLoggingOut ? null : _handleLogout,
               icon: isLoggingOut

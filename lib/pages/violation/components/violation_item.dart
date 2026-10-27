@@ -21,7 +21,7 @@ class ViolationItem extends StatelessWidget {
           // Handle both old bool values and new dynamic values for backward compatibility
           final violationValue = violations[item];
           bool value;
-          
+
           if (violationValue is bool) {
             value = violationValue;
           } else if (violationValue is Map<String, dynamic>) {
@@ -37,7 +37,9 @@ class ViolationItem extends StatelessWidget {
                 context.read<ViolationBloc>().add(
                   UpdateViolationEvent(
                     key: item,
-                    value: !value ? true : false, // Toggle between true/false for simple violations
+                    value: !value
+                        ? true
+                        : false, // Toggle between true/false for simple violations
                   ),
                 );
                 HapticFeedback.lightImpact();
@@ -47,13 +49,13 @@ class ViolationItem extends StatelessWidget {
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: value
-                      ? const Color(0xFF007AFF).withOpacity(0.15)
-                      : Colors.white.withOpacity(0.08),
+                      ? const Color(0xFF007AFF).withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: value
                         ? const Color(0xFF007AFF)
-                        : Colors.white.withOpacity(0.12),
+                        : Colors.white.withValues(alpha: 0.12),
                     width: value ? 2 : 1,
                   ),
                 ),
@@ -69,7 +71,7 @@ class ViolationItem extends StatelessWidget {
                         border: Border.all(
                           color: value
                               ? const Color(0xFF007AFF)
-                              : Colors.white.withOpacity(0.5),
+                              : Colors.white.withValues(alpha: 0.5),
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(4),

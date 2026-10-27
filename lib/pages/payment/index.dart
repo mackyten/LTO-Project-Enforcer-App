@@ -62,9 +62,11 @@ class _PaymentPageState extends State<PaymentPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +95,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     _buildSummaryRow('Driver Name', widget.report.fullname),
 
                     SizedBox(height: 12),
-                    Divider(color: Colors.white.withOpacity(0.3)),
+                    Divider(color: Colors.white.withValues(alpha: 0.3)),
                     SizedBox(height: 12),
 
                     Text(
@@ -106,37 +108,35 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                     SizedBox(height: 8),
 
-                    ...widget.report.violations
-                        .map(
-                          (violation) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    violation.violationName,
-                                    style: TextStyle(
-                                      fontSize: FontSizes().caption,
-                                      color: Colors.white.withOpacity(0.8),
-                                    ),
-                                  ),
+                    ...widget.report.violations.map(
+                      (violation) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                violation.violationName,
+                                style: TextStyle(
+                                  fontSize: FontSizes().caption,
+                                  color: Colors.white.withValues(alpha: 0.8),
                                 ),
-                                Text(
-                                  PaymentHandler.formatAmount(violation.price),
-                                  style: TextStyle(
-                                    fontSize: FontSizes().caption,
-                                    color: Colors.white.withOpacity(0.8),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        )
-                        .toList(),
+                            Text(
+                              PaymentHandler.formatAmount(violation.price),
+                              style: TextStyle(
+                                fontSize: FontSizes().caption,
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
                     SizedBox(height: 12),
-                    Divider(color: Colors.white.withOpacity(0.3)),
+                    Divider(color: Colors.white.withValues(alpha: 0.3)),
                     SizedBox(height: 12),
 
                     // Subtotal
@@ -147,7 +147,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           'Subtotal:',
                           style: TextStyle(
                             fontSize: FontSizes().body,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                         Text(
@@ -156,7 +156,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           ),
                           style: TextStyle(
                             fontSize: FontSizes().body,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -171,7 +171,7 @@ class _PaymentPageState extends State<PaymentPage> {
                           'Processing Fee (2.5%):',
                           style: TextStyle(
                             fontSize: FontSizes().body,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                         Text(
@@ -182,14 +182,14 @@ class _PaymentPageState extends State<PaymentPage> {
                           ),
                           style: TextStyle(
                             fontSize: FontSizes().body,
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 8),
 
-                    Divider(color: Colors.white.withOpacity(0.3)),
+                    Divider(color: Colors.white.withValues(alpha: 0.3)),
                     SizedBox(height: 8),
 
                     // Total
@@ -309,9 +309,11 @@ class _PaymentPageState extends State<PaymentPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,7 +340,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       '• Keep your receipt for records',
                       style: TextStyle(
                         fontSize: FontSizes().caption,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -361,7 +363,7 @@ class _PaymentPageState extends State<PaymentPage> {
             label,
             style: TextStyle(
               fontSize: FontSizes().caption,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           Text(
@@ -389,11 +391,11 @@ class _PaymentPageState extends State<PaymentPage> {
     return Container(
       decoration: BoxDecoration(
         color: isSelected
-            ? color.withOpacity(0.2)
-            : Colors.white.withOpacity(0.1),
+            ? color.withValues(alpha: 0.2)
+            : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSelected ? color : Colors.white.withOpacity(0.2),
+          color: isSelected ? color : Colors.white.withValues(alpha: 0.2),
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -413,7 +415,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: color, size: 24),
@@ -435,7 +437,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         subtitle,
                         style: TextStyle(
                           fontSize: FontSizes().caption,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -570,15 +572,18 @@ class _PaymentPageState extends State<PaymentPage> {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final random = Random();
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    
+
     // Get last 6 digits of timestamp for uniqueness
     final timestampSuffix = (timestamp % 1000000).toString().padLeft(6, '0');
-    
+
     // Generate 4 random characters
-    final randomChars = String.fromCharCodes(Iterable.generate(
-      4, (_) => chars.codeUnitAt(random.nextInt(chars.length))
-    ));
-    
+    final randomChars = String.fromCharCodes(
+      Iterable.generate(
+        4,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
+    );
+
     // Format: LTO-XXXXXX-YYYY (14 characters total)
     return 'ATF-$timestampSuffix-$randomChars';
   }

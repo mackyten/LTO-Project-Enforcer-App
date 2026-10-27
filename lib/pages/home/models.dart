@@ -1,5 +1,3 @@
-import 'package:enforcer_auto_fine/pages/violation/models/report_model.dart';
-
 class WeekleySummaryModel {
   final int totalViolations;
   final int thisWeeksViolation;

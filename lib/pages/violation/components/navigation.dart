@@ -22,9 +22,9 @@ class Navigation extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(30),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.9),
+        color: Colors.black.withValues(alpha: 0.9),
         border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
         ),
       ),
       child: Row(
@@ -33,7 +33,7 @@ class Navigation extends StatelessWidget {
             Expanded(
               child: CupertinoButton(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
                 onPressed: previousStep,
                 child: Text(

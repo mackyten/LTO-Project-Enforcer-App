@@ -1,6 +1,5 @@
 import 'package:enforcer_auto_fine/pages/auth/login/index.dart';
 import 'package:enforcer_auto_fine/pages/home/index.dart';
-import 'package:enforcer_auto_fine/pages/violation/index.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -12,9 +11,6 @@ class Wrapper extends StatefulWidget {
 }
 
 class _WrapperState extends State<Wrapper> {
-
-
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -23,9 +19,7 @@ class _WrapperState extends State<Wrapper> {
         // Show a loading indicator while the stream is waiting for data
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 

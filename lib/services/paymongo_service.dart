@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:uuid/uuid.dart';
 
 class PayMongoService {
   static const String _baseUrl = 'https://api.paymongo.com/v1';
@@ -176,8 +175,10 @@ class PayMongoService {
               'amount': amount,
               'currency': currency,
               'redirect': {
-                'success': "https://lingayen-lto.web.app/success-payment?source_id=$internalId",
-                'failed': "https://lingayen-lto.web.app/failed-payment?source_id=$internalId",
+                'success':
+                    "https://lingayen-lto.web.app/success-payment?source_id=$internalId",
+                'failed':
+                    "https://lingayen-lto.web.app/failed-payment?source_id=$internalId",
               },
               'billing': billing,
             },

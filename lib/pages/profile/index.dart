@@ -226,7 +226,7 @@ class _ProfileState extends State<Profile> {
               content: Text(
                 'You have unsaved changes. Are you sure you want to leave without saving?',
                 style: TextStyle(
-                  color: MainColor().textPrimary.withOpacity(0.8),
+                  color: MainColor().textPrimary.withValues(alpha: 0.8),
                   fontSize: FontSizes().body,
                 ),
               ),
@@ -234,7 +234,9 @@ class _ProfileState extends State<Profile> {
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
                   style: TextButton.styleFrom(
-                    foregroundColor: MainColor().textPrimary.withOpacity(0.7),
+                    foregroundColor: MainColor().textPrimary.withValues(
+                      alpha: 0.7,
+                    ),
                   ),
                   child: Text('Stay'),
                 ),
@@ -327,7 +329,7 @@ class _ProfileState extends State<Profile> {
                   appBar: GlassmorphismAppBar(
                     title: Text(isEditMode ? 'Edit Profile' : 'Profile'),
                     leading: isEditMode
-                        ? Container(
+                        ? SizedBox(
                             width: 80,
                             child: TextButton(
                               onPressed: _handleCancel,
@@ -494,8 +496,12 @@ class _ProfileState extends State<Profile> {
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: [
-                                                Colors.white.withOpacity(0.08),
-                                                Colors.white.withOpacity(0.04),
+                                                Colors.white.withValues(
+                                                  alpha: 0.08,
+                                                ),
+                                                Colors.white.withValues(
+                                                  alpha: 0.04,
+                                                ),
                                               ],
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
@@ -504,15 +510,15 @@ class _ProfileState extends State<Profile> {
                                               20,
                                             ),
                                             border: Border.all(
-                                              color: Colors.white.withOpacity(
-                                                0.15,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.15,
                                               ),
                                               width: 1,
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.1,
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.1,
                                                 ),
                                                 blurRadius: 15,
                                                 offset: Offset(0, 5),
@@ -525,14 +531,14 @@ class _ProfileState extends State<Profile> {
                                                 padding: EdgeInsets.all(12),
                                                 decoration: BoxDecoration(
                                                   color: Colors.orange
-                                                      .withOpacity(0.2),
+                                                      .withValues(alpha: 0.2),
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                 ),
                                                 child: Icon(
                                                   Icons.badge,
                                                   color: Colors.orange
-                                                      .withOpacity(0.8),
+                                                      .withValues(alpha: 0.8),
                                                   size: 22,
                                                 ),
                                               ),
@@ -547,7 +553,9 @@ class _ProfileState extends State<Profile> {
                                                       style: TextStyle(
                                                         color: MainColor()
                                                             .textPrimary
-                                                            .withOpacity(0.7),
+                                                            .withValues(
+                                                              alpha: 0.7,
+                                                            ),
                                                         fontSize:
                                                             FontSizes().caption,
                                                         fontWeight:
@@ -567,8 +575,8 @@ class _ProfileState extends State<Profile> {
                                                                   .textPrimary
                                                             : MainColor()
                                                                   .textPrimary
-                                                                  .withOpacity(
-                                                                    0.4,
+                                                                  .withValues(
+                                                                    alpha: 0.4,
                                                                   ),
                                                         fontSize:
                                                             FontSizes().body,
@@ -591,8 +599,8 @@ class _ProfileState extends State<Profile> {
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.1,
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.1,
                                                 ),
                                                 blurRadius: 10,
                                                 offset: Offset(0, 4),
@@ -613,22 +621,26 @@ class _ProfileState extends State<Profile> {
                                           ),
                                           gradient: LinearGradient(
                                             colors: [
-                                              Colors.white.withOpacity(0.1),
-                                              Colors.white.withOpacity(0.05),
+                                              Colors.white.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              Colors.white.withValues(
+                                                alpha: 0.05,
+                                              ),
                                             ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ),
                                           border: Border.all(
-                                            color: Colors.white.withOpacity(
-                                              0.2,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
                                             ),
                                             width: 1,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.15,
+                                              color: Colors.black.withValues(
+                                                alpha: 0.15,
                                               ),
                                               blurRadius: 20,
                                               offset: Offset(0, 8),
@@ -641,7 +653,7 @@ class _ProfileState extends State<Profile> {
                                           ),
                                           child: Stack(
                                             children: [
-                                              Container(
+                                              SizedBox(
                                                 width: double.infinity,
                                                 height: size.width * .60,
                                                 child: badgePhoto != null
@@ -664,8 +676,9 @@ class _ProfileState extends State<Profile> {
                                                               loadingProgress,
                                                             ) {
                                                               if (loadingProgress ==
-                                                                  null)
+                                                                  null) {
                                                                 return child;
+                                                              }
                                                               return Center(
                                                                 child: CircularProgressIndicator(
                                                                   value:
@@ -690,13 +703,15 @@ class _ProfileState extends State<Profile> {
                                                                     colors: [
                                                                       Colors
                                                                           .grey
-                                                                          .withOpacity(
-                                                                            0.1,
+                                                                          .withValues(
+                                                                            alpha:
+                                                                                0.1,
                                                                           ),
                                                                       Colors
                                                                           .grey
-                                                                          .withOpacity(
-                                                                            0.05,
+                                                                          .withValues(
+                                                                            alpha:
+                                                                                0.05,
                                                                           ),
                                                                     ],
                                                                     begin: Alignment
@@ -718,8 +733,8 @@ class _ProfileState extends State<Profile> {
                                                                             48,
                                                                         color: MainColor()
                                                                             .textPrimary
-                                                                            .withOpacity(
-                                                                              0.4,
+                                                                            .withValues(
+                                                                              alpha: 0.4,
                                                                             ),
                                                                       ),
                                                                       SizedBox(
@@ -729,8 +744,9 @@ class _ProfileState extends State<Profile> {
                                                                       Text(
                                                                         'Failed to load image',
                                                                         style: TextStyle(
-                                                                          color: MainColor().textPrimary.withOpacity(
-                                                                            0.6,
+                                                                          color: MainColor().textPrimary.withValues(
+                                                                            alpha:
+                                                                                0.6,
                                                                           ),
                                                                           fontSize:
                                                                               FontSizes().caption,
@@ -747,12 +763,12 @@ class _ProfileState extends State<Profile> {
                                                           gradient: LinearGradient(
                                                             colors: [
                                                               Colors.grey
-                                                                  .withOpacity(
-                                                                    0.1,
+                                                                  .withValues(
+                                                                    alpha: 0.1,
                                                                   ),
                                                               Colors.grey
-                                                                  .withOpacity(
-                                                                    0.05,
+                                                                  .withValues(
+                                                                    alpha: 0.05,
                                                                   ),
                                                             ],
                                                             begin: Alignment
@@ -776,8 +792,8 @@ class _ProfileState extends State<Profile> {
                                                                       decoration: BoxDecoration(
                                                                         color: Colors
                                                                             .white
-                                                                            .withOpacity(
-                                                                              0.1,
+                                                                            .withValues(
+                                                                              alpha: 0.1,
                                                                             ),
                                                                         borderRadius:
                                                                             BorderRadius.circular(
@@ -791,8 +807,8 @@ class _ProfileState extends State<Profile> {
                                                                             48,
                                                                         color: MainColor()
                                                                             .textPrimary
-                                                                            .withOpacity(
-                                                                              0.4,
+                                                                            .withValues(
+                                                                              alpha: 0.4,
                                                                             ),
                                                                       ),
                                                                     ),
@@ -805,8 +821,8 @@ class _ProfileState extends State<Profile> {
                                                                       style: TextStyle(
                                                                         color: MainColor()
                                                                             .textPrimary
-                                                                            .withOpacity(
-                                                                              0.6,
+                                                                            .withValues(
+                                                                              alpha: 0.6,
                                                                             ),
                                                                         fontSize:
                                                                             FontSizes().body,
@@ -829,9 +845,13 @@ class _ProfileState extends State<Profile> {
                                                       gradient: LinearGradient(
                                                         colors: [
                                                           Colors.black
-                                                              .withOpacity(0.7),
+                                                              .withValues(
+                                                                alpha: 0.7,
+                                                              ),
                                                           Colors.black
-                                                              .withOpacity(0.5),
+                                                              .withValues(
+                                                                alpha: 0.5,
+                                                              ),
                                                         ],
                                                         begin:
                                                             Alignment.topCenter,
@@ -855,8 +875,8 @@ class _ProfileState extends State<Profile> {
                                                             decoration: BoxDecoration(
                                                               color: Colors
                                                                   .white
-                                                                  .withOpacity(
-                                                                    0.2,
+                                                                  .withValues(
+                                                                    alpha: 0.2,
                                                                   ),
                                                               borderRadius:
                                                                   BorderRadius.circular(
@@ -897,7 +917,6 @@ class _ProfileState extends State<Profile> {
 
                                       SizedBox(height: 32),
                                     ], // End of enforcer-specific fields
-
                                     // Common password section for both user types
                                     isEditMode
                                         ? SizedBox()
@@ -907,16 +926,21 @@ class _ProfileState extends State<Profile> {
                                                   BorderRadius.circular(20),
                                               gradient: LinearGradient(
                                                 colors: [
-                                                  Colors.blue.withOpacity(0.8),
-                                                  Colors.blue.withOpacity(0.6),
+                                                  Colors.blue.withValues(
+                                                    alpha: 0.8,
+                                                  ),
+                                                  Colors.blue.withValues(
+                                                    alpha: 0.6,
+                                                  ),
                                                 ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.blue
-                                                      .withOpacity(0.3),
+                                                  color: Colors.blue.withValues(
+                                                    alpha: 0.3,
+                                                  ),
                                                   blurRadius: 15,
                                                   offset: Offset(0, 6),
                                                 ),
@@ -942,7 +966,9 @@ class _ProfileState extends State<Profile> {
                                                         ),
                                                         decoration: BoxDecoration(
                                                           color: Colors.white
-                                                              .withOpacity(0.2),
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
                                                           borderRadius:
                                                               BorderRadius.circular(
                                                                 12,
@@ -973,7 +999,9 @@ class _ProfileState extends State<Profile> {
                                                         Icons
                                                             .arrow_forward_ios_rounded,
                                                         color: Colors.white
-                                                            .withOpacity(0.8),
+                                                            .withValues(
+                                                              alpha: 0.8,
+                                                            ),
                                                         size: 18,
                                                       ),
                                                     ],
@@ -1027,10 +1055,10 @@ class _ProfileState extends State<Profile> {
                                   backgroundColor: Colors.blue,
                                   foregroundColor: Colors.white,
                                   elevation: 8,
-                                  child: Icon(Icons.edit_rounded),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
+                                  child: Icon(Icons.edit_rounded),
                                 ),
                         )
                       : null,
@@ -1082,7 +1110,7 @@ class _ProfileState extends State<Profile> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: Offset(0, 4),
             ),
@@ -1101,11 +1129,11 @@ class _ProfileState extends State<Profile> {
           decoration: InputDecoration(
             labelText: label,
             labelStyle: TextStyle(
-              color: MainColor().textPrimary.withOpacity(0.7),
+              color: MainColor().textPrimary.withValues(alpha: 0.7),
               fontSize: FontSizes().caption,
             ),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Colors.white.withValues(alpha: 0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
@@ -1113,14 +1141,14 @@ class _ProfileState extends State<Profile> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.blue.withOpacity(0.5),
+                color: Colors.blue.withValues(alpha: 0.5),
                 width: 2,
               ),
             ),
@@ -1129,7 +1157,7 @@ class _ProfileState extends State<Profile> {
               margin: EdgeInsets.only(left: 16, right: 12),
               child: Icon(
                 icon,
-                color: MainColor().textPrimary.withOpacity(0.6),
+                color: MainColor().textPrimary.withValues(alpha: 0.6),
                 size: 20,
               ),
             ),
@@ -1144,17 +1172,20 @@ class _ProfileState extends State<Profile> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white.withOpacity(0.08),
-              Colors.white.withOpacity(0.04),
+              Colors.white.withValues(alpha: 0.08),
+              Colors.white.withValues(alpha: 0.04),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 15,
               offset: Offset(0, 5),
             ),
@@ -1165,10 +1196,14 @@ class _ProfileState extends State<Profile> {
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
+                color: Colors.blue.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: Colors.blue.withOpacity(0.8), size: 22),
+              child: Icon(
+                icon,
+                color: Colors.blue.withValues(alpha: 0.8),
+                size: 22,
+              ),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -1178,7 +1213,7 @@ class _ProfileState extends State<Profile> {
                   Text(
                     label,
                     style: TextStyle(
-                      color: MainColor().textPrimary.withOpacity(0.7),
+                      color: MainColor().textPrimary.withValues(alpha: 0.7),
                       fontSize: FontSizes().caption,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
@@ -1189,7 +1224,7 @@ class _ProfileState extends State<Profile> {
                     controller.text.isEmpty ? 'Not provided' : controller.text,
                     style: TextStyle(
                       color: controller.text.isEmpty
-                          ? MainColor().textPrimary.withOpacity(0.4)
+                          ? MainColor().textPrimary.withValues(alpha: 0.4)
                           : MainColor().textPrimary,
                       fontSize: FontSizes().body,
                       fontWeight: FontWeight.w500,
@@ -1212,10 +1247,10 @@ class _ProfileState extends State<Profile> {
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -1223,7 +1258,7 @@ class _ProfileState extends State<Profile> {
               children: [
                 Icon(
                   Icons.badge,
-                  color: MainColor().textPrimary.withOpacity(0.6),
+                  color: MainColor().textPrimary.withValues(alpha: 0.6),
                   size: 20,
                 ),
                 SizedBox(width: 12),
@@ -1233,7 +1268,7 @@ class _ProfileState extends State<Profile> {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      MainColor().textPrimary.withOpacity(0.6),
+                      MainColor().textPrimary.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -1241,7 +1276,7 @@ class _ProfileState extends State<Profile> {
                 Text(
                   'Loading ID types...',
                   style: TextStyle(
-                    color: MainColor().textPrimary.withOpacity(0.7),
+                    color: MainColor().textPrimary.withValues(alpha: 0.7),
                     fontSize: FontSizes().caption,
                   ),
                 ),
@@ -1254,10 +1289,10 @@ class _ProfileState extends State<Profile> {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.red.withOpacity(0.3),
+                  color: Colors.red.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -1282,10 +1317,10 @@ class _ProfileState extends State<Profile> {
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -1293,14 +1328,14 @@ class _ProfileState extends State<Profile> {
               children: [
                 Icon(
                   Icons.info_outline,
-                  color: MainColor().textPrimary.withOpacity(0.6),
+                  color: MainColor().textPrimary.withValues(alpha: 0.6),
                   size: 20,
                 ),
                 SizedBox(width: 12),
                 Text(
                   'No ID types available',
                   style: TextStyle(
-                    color: MainColor().textPrimary.withOpacity(0.7),
+                    color: MainColor().textPrimary.withValues(alpha: 0.7),
                     fontSize: FontSizes().caption,
                   ),
                 ),
@@ -1330,11 +1365,11 @@ class _ProfileState extends State<Profile> {
             decoration: InputDecoration(
               labelText: label,
               labelStyle: TextStyle(
-                color: MainColor().textPrimary.withOpacity(0.7),
+                color: MainColor().textPrimary.withValues(alpha: 0.7),
                 fontSize: FontSizes().caption,
               ),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.1),
+              fillColor: Colors.white.withValues(alpha: 0.1),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -1342,14 +1377,14 @@ class _ProfileState extends State<Profile> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   width: 1,
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: Colors.blue.withOpacity(0.5),
+                  color: Colors.blue.withValues(alpha: 0.5),
                   width: 2,
                 ),
               ),
@@ -1361,16 +1396,16 @@ class _ProfileState extends State<Profile> {
                 margin: EdgeInsets.only(left: 16, right: 12),
                 child: Icon(
                   Icons.badge,
-                  color: MainColor().textPrimary.withOpacity(0.6),
+                  color: MainColor().textPrimary.withValues(alpha: 0.6),
                   size: 20,
                 ),
               ),
             ),
-            value: _selectedIdType,
+            initialValue: _selectedIdType,
             hint: Text(
               'Choose your ID/Badge type',
               style: TextStyle(
-                color: MainColor().textPrimary.withOpacity(0.5),
+                color: MainColor().textPrimary.withValues(alpha: 0.5),
                 fontSize: FontSizes().caption,
               ),
             ),

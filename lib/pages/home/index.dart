@@ -10,7 +10,6 @@ import 'package:enforcer_auto_fine/shared/app_theme/fonts.dart';
 import 'package:enforcer_auto_fine/shared/components/app_bar/index.dart';
 import 'package:enforcer_auto_fine/shared/components/side_drawer/role_based_drawer.dart';
 import 'package:enforcer_auto_fine/shared/decorations/app_bg.dart';
-import 'package:enforcer_auto_fine/enums/user_roles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -88,7 +87,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildRoleBasedHome(HomeLoaded state) {
     final userRoles = state.userRoles;
-    
+
     // Check role conditions using enhanced state methods
     if (userRoles.length > 3) {
       // Too many roles - show error page
@@ -196,11 +195,11 @@ class _HomePageState extends State<HomePage> {
 
       final userUUID = currentUser.uid;
       final draftKey = 'draft_${userUUID}_${report.draftId}';
-      
+
       // Remove the draft from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final removed = await prefs.remove(draftKey);
-      
+
       if (removed) {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -209,7 +208,7 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Refresh home data to update the pending drafts list
         context.read<HomeBloc>().add(FetchHomeData());
       } else {

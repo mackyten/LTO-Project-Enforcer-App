@@ -182,7 +182,7 @@ class _RoleBasedSideDrawerState extends State<RoleBasedSideDrawer> {
                                   decoration: BoxDecoration(
                                     color: _getRoleColor(
                                       userRoles,
-                                    ).withOpacity(0.2),
+                                    ).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(

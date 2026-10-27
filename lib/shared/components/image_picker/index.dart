@@ -25,13 +25,13 @@ class AppImagePicker extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 40, horizontal: 20),
         decoration: BoxDecoration(
           color: image != null
-              ? Color(0xFF30D158).withOpacity(0.1)
-              : Colors.white.withOpacity(0.05),
+              ? Color(0xFF30D158).withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: image != null
                 ? Color(0xFF30D158)
-                : Colors.white.withOpacity(0.3),
+                : Colors.white.withValues(alpha: 0.3),
             width: 2,
             style: BorderStyle.solid,
           ),
@@ -44,7 +44,7 @@ class AppImagePicker extends StatelessWidget {
               Text(
                 text,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   fontSize: 17,
                   fontWeight: FontWeight.w500,
                 ),
@@ -53,7 +53,7 @@ class AppImagePicker extends StatelessWidget {
               Text(
                 subtext,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 15,
                 ),
               ),
@@ -72,7 +72,7 @@ class AppImagePicker extends StatelessWidget {
               Text(
                 'Tap to change',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   fontSize: 15,
                 ),
               ),

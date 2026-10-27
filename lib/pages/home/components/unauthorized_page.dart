@@ -27,17 +27,13 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: Colors.red.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.block,
-              size: 80,
-              color: Colors.red,
-            ),
+            child: Icon(Icons.block, size: 80, color: Colors.red),
           ),
           SizedBox(height: 30),
-          
+
           // Title
           Text(
             'Access Denied',
@@ -49,7 +45,7 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 15),
-          
+
           // Subtitle
           Text(
             'Admin Role Detected',
@@ -61,27 +57,27 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 20),
-          
+
           // Description
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.05),
+              color: Colors.red.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.red.withOpacity(0.2)),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
             ),
             child: Text(
               'This mobile application is not intended for admin users. Please use the web dashboard to access admin features.',
               style: TextStyle(
                 fontSize: FontSizes().body,
-                color: MainColor().textPrimary.withOpacity(0.8),
+                color: MainColor().textPrimary.withValues(alpha: 0.8),
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),
           ),
           SizedBox(height: 40),
-          
+
           // Logout Button
           SizedBox(
             width: double.infinity,
@@ -90,7 +86,7 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey.withOpacity(0.5),
+                disabledBackgroundColor: Colors.grey.withValues(alpha: 0.5),
               ),
               onPressed: isLoggingOut ? null : _handleLogout,
               icon: isLoggingOut
@@ -113,28 +109,24 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
             ),
           ),
           SizedBox(height: 20),
-          
+
           // Contact Info
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: MainColor().primary.withOpacity(0.1),
+              color: MainColor().primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  color: MainColor().primary,
-                  size: 20,
-                ),
+                Icon(Icons.info_outline, color: MainColor().primary, size: 20),
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Need help? Contact your system administrator.',
                     style: TextStyle(
                       fontSize: FontSizes().caption,
-                      color: MainColor().textPrimary.withOpacity(0.7),
+                      color: MainColor().textPrimary.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -154,7 +146,7 @@ class _UnauthorizedPageState extends State<UnauthorizedPage> {
     try {
       // Reset HomeBloc state before logging out
       context.read<HomeBloc>().add(ResetHomeData());
-      
+
       await signOut(context);
     } catch (e) {
       print("Sign out failed: $e");

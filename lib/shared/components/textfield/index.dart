@@ -37,16 +37,20 @@ class AppTextField extends StatelessWidget {
           style: TextStyle(color: Colors.white, fontSize: 17),
           decoration: InputDecoration(
             hintText: placeholder,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Colors.white.withValues(alpha: 0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),

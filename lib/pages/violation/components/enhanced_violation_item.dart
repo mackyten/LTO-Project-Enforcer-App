@@ -11,8 +11,8 @@ class EnhancedViolationItem extends StatefulWidget {
   final int offenseNumber;
 
   const EnhancedViolationItem({
-    super.key, 
-    required this.label, 
+    super.key,
+    required this.label,
     required this.item,
     required this.offenseNumber,
   });
@@ -23,7 +23,8 @@ class EnhancedViolationItem extends StatefulWidget {
 
 class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
   final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _excessPassengersController = TextEditingController();
+  final TextEditingController _excessPassengersController =
+      TextEditingController();
   String? selectedOption;
 
   @override
@@ -60,13 +61,13 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF007AFF).withOpacity(0.15)
-                        : Colors.white.withOpacity(0.08),
+                        ? const Color(0xFF007AFF).withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF007AFF)
-                          : Colors.white.withOpacity(0.12),
+                          : Colors.white.withValues(alpha: 0.12),
                       width: isSelected ? 2 : 1,
                     ),
                   ),
@@ -84,7 +85,7 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
                               border: Border.all(
                                 color: isSelected
                                     ? const Color(0xFF007AFF)
-                                    : Colors.white.withOpacity(0.5),
+                                    : Colors.white.withValues(alpha: 0.5),
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(4),
@@ -110,11 +111,14 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                if (violationDef.type == ViolationType.fixed && violationDef.prices != null)
+                                if (violationDef.type == ViolationType.fixed &&
+                                    violationDef.prices != null)
                                   Text(
                                     _getFixedPriceText(violationDef),
                                     style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       fontSize: FontSizes().caption,
                                     ),
                                   ),
@@ -127,7 +131,7 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
                   ),
                 ),
               ),
-              
+
               // Custom input section for selected violations
               if (isSelected && violationDef.requiresCustomInput())
                 _buildCustomInputSection(context, violationDef, violationData),
@@ -143,7 +147,10 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
     return 'Fine: ₱${price.toStringAsFixed(0)}';
   }
 
-  void _toggleViolation(BuildContext context, ViolationDefinition violationDef) {
+  void _toggleViolation(
+    BuildContext context,
+    ViolationDefinition violationDef,
+  ) {
     final state = context.read<ViolationBloc>().state;
     if (state is! HomeLoaded) return;
 
@@ -165,7 +172,9 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
     HapticFeedback.lightImpact();
   }
 
-  Map<String, dynamic> _getDefaultViolationData(ViolationDefinition violationDef) {
+  Map<String, dynamic> _getDefaultViolationData(
+    ViolationDefinition violationDef,
+  ) {
     switch (violationDef.type) {
       case ViolationType.fixed:
         return {
@@ -194,24 +203,30 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
     }
   }
 
-  Widget _buildCustomInputSection(BuildContext context, ViolationDefinition violationDef, dynamic violationData) {
+  Widget _buildCustomInputSection(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    dynamic violationData,
+  ) {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (violationDef.type == ViolationType.range && violationDef.options != null)
+          if (violationDef.type == ViolationType.range &&
+              violationDef.options != null)
             _buildOptionSelector(context, violationDef, violationData),
-          
-          if (violationDef.type == ViolationType.range && violationDef.options == null)
+
+          if (violationDef.type == ViolationType.range &&
+              violationDef.options == null)
             _buildPriceRangeInput(context, violationDef, violationData),
-          
+
           if (violationDef.type == ViolationType.calculated)
             _buildCalculatedInput(context, violationDef, violationData),
         ],
@@ -219,9 +234,15 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
     );
   }
 
-  Widget _buildOptionSelector(BuildContext context, ViolationDefinition violationDef, dynamic violationData) {
-    final currentOption = violationData is Map<String, dynamic> ? violationData['option'] : null;
-    
+  Widget _buildOptionSelector(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    dynamic violationData,
+  ) {
+    final currentOption = violationData is Map<String, dynamic>
+        ? violationData['option']
+        : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -238,21 +259,22 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
           final index = entry.key;
           final option = entry.value;
           final isSelected = currentOption == option;
-          
+
           return GestureDetector(
-            onTap: () => _updateViolationOption(context, violationDef, option, index),
+            onTap: () =>
+                _updateViolationOption(context, violationDef, option, index),
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected 
-                    ? const Color(0xFF007AFF).withOpacity(0.2)
-                    : Colors.white.withOpacity(0.05),
+                color: isSelected
+                    ? const Color(0xFF007AFF).withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isSelected 
+                  color: isSelected
                       ? const Color(0xFF007AFF)
-                      : Colors.white.withOpacity(0.1),
+                      : Colors.white.withValues(alpha: 0.1),
                 ),
               ),
               child: Row(
@@ -261,9 +283,13 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
                     width: 16,
                     height: 16,
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF007AFF) : Colors.transparent,
+                      color: isSelected
+                          ? const Color(0xFF007AFF)
+                          : Colors.transparent,
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF007AFF) : Colors.white.withOpacity(0.5),
+                        color: isSelected
+                            ? const Color(0xFF007AFF)
+                            : Colors.white.withValues(alpha: 0.5),
                         width: 2,
                       ),
                       shape: BoxShape.circle,
@@ -284,18 +310,24 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
 
-  Widget _buildPriceRangeInput(BuildContext context, ViolationDefinition violationDef, dynamic violationData) {
-    final currentPrice = violationData is Map<String, dynamic> ? violationData['price'] : violationDef.minPrice;
-    
+  Widget _buildPriceRangeInput(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    dynamic violationData,
+  ) {
+    final currentPrice = violationData is Map<String, dynamic>
+        ? violationData['price']
+        : violationDef.minPrice;
+
     if (_priceController.text.isEmpty && currentPrice != null) {
       _priceController.text = currentPrice.toStringAsFixed(0);
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -313,17 +345,22 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
           keyboardType: TextInputType.number,
           style: TextStyle(color: Colors.white, fontSize: 17),
           decoration: InputDecoration(
-            hintText: 'Amount (₱${violationDef.minPrice?.toStringAsFixed(0)} - ₱${violationDef.maxPrice?.toStringAsFixed(0)})',
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+            hintText:
+                'Amount (₱${violationDef.minPrice?.toStringAsFixed(0)} - ₱${violationDef.maxPrice?.toStringAsFixed(0)})',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Colors.white.withValues(alpha: 0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -331,19 +368,26 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           ),
-          onChanged: (value) => _updateViolationPrice(context, violationDef, value),
+          onChanged: (value) =>
+              _updateViolationPrice(context, violationDef, value),
         ),
       ],
     );
   }
 
-  Widget _buildCalculatedInput(BuildContext context, ViolationDefinition violationDef, dynamic violationData) {
-    final currentExcess = violationData is Map<String, dynamic> ? violationData['excessPassengers'] : 0;
-    
+  Widget _buildCalculatedInput(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    dynamic violationData,
+  ) {
+    final currentExcess = violationData is Map<String, dynamic>
+        ? violationData['excessPassengers']
+        : 0;
+
     if (_excessPassengersController.text.isEmpty && currentExcess != null) {
       _excessPassengersController.text = currentExcess.toString();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -362,16 +406,20 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
           style: TextStyle(color: Colors.white, fontSize: 17),
           decoration: InputDecoration(
             hintText: 'Number of excess passengers',
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
+            fillColor: Colors.white.withValues(alpha: 0.1),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.15)),
+              borderSide: BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -379,13 +427,14 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           ),
-          onChanged: (value) => _updateExcessPassengers(context, violationDef, value),
+          onChanged: (value) =>
+              _updateExcessPassengers(context, violationDef, value),
         ),
         const SizedBox(height: 8),
         Text(
           'Base fine: ₱${violationDef.getPriceForOffense(widget.offenseNumber).toStringAsFixed(0)} + ₱${violationDef.excessPassengerFee?.toStringAsFixed(0)} per excess passenger',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             fontSize: FontSizes().caption,
           ),
         ),
@@ -393,51 +442,68 @@ class _EnhancedViolationItemState extends State<EnhancedViolationItem> {
     );
   }
 
-  void _updateViolationOption(BuildContext context, ViolationDefinition violationDef, String option, int index) {
+  void _updateViolationOption(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    String option,
+    int index,
+  ) {
     final state = context.read<ViolationBloc>().state;
     if (state is! HomeLoaded) return;
 
     final currentData = state.violations[widget.item] as Map<String, dynamic>;
     final newPrice = violationDef.optionPrices![index];
-    
+
     final updatedData = Map<String, dynamic>.from(currentData);
     updatedData['option'] = option;
     updatedData['price'] = newPrice;
-    
+
     context.read<ViolationBloc>().add(
       UpdateViolationEvent(key: widget.item, value: updatedData),
     );
   }
 
-  void _updateViolationPrice(BuildContext context, ViolationDefinition violationDef, String value) {
+  void _updateViolationPrice(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    String value,
+  ) {
     final state = context.read<ViolationBloc>().state;
     if (state is! HomeLoaded) return;
 
     final price = double.tryParse(value) ?? violationDef.minPrice ?? 1000.0;
-    final clampedPrice = price.clamp(violationDef.minPrice ?? 0, violationDef.maxPrice ?? double.infinity);
-    
+    final clampedPrice = price.clamp(
+      violationDef.minPrice ?? 0,
+      violationDef.maxPrice ?? double.infinity,
+    );
+
     final currentData = state.violations[widget.item] as Map<String, dynamic>;
     final updatedData = Map<String, dynamic>.from(currentData);
     updatedData['price'] = clampedPrice;
-    
+
     context.read<ViolationBloc>().add(
       UpdateViolationEvent(key: widget.item, value: updatedData),
     );
   }
 
-  void _updateExcessPassengers(BuildContext context, ViolationDefinition violationDef, String value) {
+  void _updateExcessPassengers(
+    BuildContext context,
+    ViolationDefinition violationDef,
+    String value,
+  ) {
     final state = context.read<ViolationBloc>().state;
     if (state is! HomeLoaded) return;
 
     final excessPassengers = int.tryParse(value) ?? 0;
     final basePrice = violationDef.getPriceForOffense(widget.offenseNumber);
-    final totalPrice = basePrice + (excessPassengers * (violationDef.excessPassengerFee ?? 0));
-    
+    final totalPrice =
+        basePrice + (excessPassengers * (violationDef.excessPassengerFee ?? 0));
+
     final currentData = state.violations[widget.item] as Map<String, dynamic>;
     final updatedData = Map<String, dynamic>.from(currentData);
     updatedData['excessPassengers'] = excessPassengers;
     updatedData['price'] = totalPrice;
-    
+
     context.read<ViolationBloc>().add(
       UpdateViolationEvent(key: widget.item, value: updatedData),
     );

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../enums/user_roles.dart';
-import 'firebase_password_reset.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -77,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Container(
                     width: 200,
                     height: 200,
-                    color: MainColor().tertiary.withOpacity(0.5),
+                    color: MainColor().tertiary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -99,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Container(
                     width: 200,
                     height: 200,
-                    color: MainColor().tertiary.withOpacity(0.5),
+                    color: MainColor().tertiary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -150,10 +149,10 @@ class _LoginPageState extends State<LoginPage> {
                         padding: EdgeInsets.all(12),
                         margin: EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Colors.red.withOpacity(0.3),
+                            color: Colors.red.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Text(
@@ -283,18 +282,20 @@ class _LoginPageState extends State<LoginPage> {
                                     );
                                   } catch (e) {
                                     if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                          e.toString().replaceAll(
-                                            'Exception: ',
-                                            '',
-                                          ),
+                                            e.toString().replaceAll(
+                                              'Exception: ',
+                                              '',
+                                            ),
                                           ),
                                           backgroundColor: Colors.red,
                                           behavior: SnackBarBehavior.floating,
                                         ),
-                                        );
+                                      );
                                     }
                                   }
                                 },
@@ -392,7 +393,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       } else {
         // Other auth errors, rethrow
-        throw e;
+        rethrow;
       }
     }
   }

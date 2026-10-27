@@ -184,9 +184,9 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,7 +210,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                     'Total Violations: ${_violations.length}${_hasMoreData ? '+' : ''}',
                     style: TextStyle(
                       fontSize: FontSizes().body,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -269,7 +269,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
             Icon(
               Icons.check_circle_outline,
               size: 80,
-              color: Colors.green.withOpacity(0.7),
+              color: Colors.green.withValues(alpha: 0.7),
             ),
             SizedBox(height: 24),
             Text(
@@ -286,7 +286,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: FontSizes().body,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
             SizedBox(height: 24),
@@ -321,9 +321,9 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -344,7 +344,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                         decoration: BoxDecoration(
                           color: _getViolationColor(
                             primaryViolation,
-                          ).withOpacity(0.2),
+                          ).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
@@ -371,7 +371,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                               violation.address,
                               style: TextStyle(
                                 fontSize: FontSizes().body,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                             ),
                             SizedBox(height: 8),
@@ -380,14 +380,14 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                                 Icon(
                                   Icons.calendar_today,
                                   size: 14,
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: Colors.white.withValues(alpha: 0.6),
                                 ),
                                 SizedBox(width: 4),
                                 Text(
                                   _formatDate(violation.createdAt),
                                   style: TextStyle(
                                     fontSize: FontSizes().caption,
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: Colors.white.withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -399,40 +399,44 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(violation.status).withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: _getStatusColor(violation.status).withOpacity(0.5),
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _getStatusColor(
+                                    violation.status,
+                                  ).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _getStatusColor(
+                                      violation.status,
+                                    ).withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                child: Text(
+                                  violation.status.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: FontSizes().caption,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getStatusColor(violation.status),
+                                  ),
                                 ),
                               ),
-                              child: Text(
-                                violation.status.toUpperCase(),
+                              SizedBox(height: 8),
+                              Text(
+                                violation.trackingNumber ?? 'N/A',
                                 style: TextStyle(
                                   fontSize: FontSizes().caption,
                                   fontWeight: FontWeight.bold,
-                                  color: _getStatusColor(violation.status),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                 ),
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              violation.trackingNumber ?? 'N/A',
-                              style: TextStyle(
-                                fontSize: FontSizes().caption,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white.withOpacity(0.7),
-                              ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                         ],
                       ),
                     ],
@@ -443,7 +447,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                       '+${violation.violations.length - 1} more violation${violation.violations.length > 2 ? 's' : ''}',
                       style: TextStyle(
                         fontSize: FontSizes().caption,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -478,7 +482,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
               height: 5,
               margin: EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -495,11 +499,13 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                           decoration: BoxDecoration(
                             color: _getViolationColor(
                               violation.violations.first.violationName,
-                            ).withOpacity(0.2),
+                            ).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            _getViolationIcon(violation.violations.first.violationName),
+                            _getViolationIcon(
+                              violation.violations.first.violationName,
+                            ),
                             color: _getViolationColor(
                               violation.violations.first.violationName,
                             ),
@@ -512,47 +518,57 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                              'Traffic Violation Report',
-                              style: TextStyle(
-                                fontSize: FontSizes().h3,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                                'Traffic Violation Report',
+                                style: TextStyle(
+                                  fontSize: FontSizes().h3,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
                               Row(
-                              children: [
-                                Expanded(
-                                child: Text(
-                                  violation.trackingNumber ??
-                                    'No tracking number',
-                                  style: TextStyle(
-                                  fontSize: FontSizes().body,
-                                  color: Colors.white.withOpacity(0.7),
-                                  ),
-                                ),
-                                ),
-                                if (violation.trackingNumber != null)
-                                IconButton(
-                                  onPressed: () {
-                                  Clipboard.setData(ClipboardData(
-                                    text: violation.trackingNumber!,
-                                  ));
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                    content: Text('Tracking number copied to clipboard'),
-                                    duration: Duration(seconds: 2),
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      violation.trackingNumber ??
+                                          'No tracking number',
+                                      style: TextStyle(
+                                        fontSize: FontSizes().body,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                      ),
                                     ),
-                                  );
-                                  },
-                                  icon: Icon(
-                                  Icons.copy,
-                                  color: Colors.white.withOpacity(0.7),
-                                  size: 18,
                                   ),
-                                  padding: EdgeInsets.zero,
-                                  constraints: BoxConstraints(),
-                                ),
-                              ],
+                                  if (violation.trackingNumber != null)
+                                    IconButton(
+                                      onPressed: () {
+                                        Clipboard.setData(
+                                          ClipboardData(
+                                            text: violation.trackingNumber!,
+                                          ),
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Tracking number copied to clipboard',
+                                            ),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.copy,
+                                        color: Colors.white.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                        size: 18,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: BoxConstraints(),
+                                    ),
+                                ],
                               ),
                             ],
                           ),
@@ -562,8 +578,12 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                     SizedBox(height: 24),
                     _buildDetailRow('Driver Name', violation.fullname),
                     // Show payment reference if status is Paid
-                    if (violation.status == 'Paid' && violation.paymentReferenceId != null)
-                      _buildDetailRow('Payment Reference', violation.paymentReferenceId!),
+                    if (violation.status == 'Paid' &&
+                        violation.paymentReferenceId != null)
+                      _buildDetailRow(
+                        'Payment Reference',
+                        violation.paymentReferenceId!,
+                      ),
                     _buildDetailRow('Address', violation.address),
                     _buildDetailRow('Phone Number', violation.phoneNumber),
                     _buildDetailRow('License Number', violation.licenseNumber),
@@ -587,7 +607,7 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                       width: double.infinity,
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -601,18 +621,23 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                                     Icon(
                                       Icons.fiber_manual_record,
                                       size: 8,
-                                      color: Colors.white.withOpacity(0.6),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.6,
+                                      ),
                                     ),
                                     SizedBox(width: 8),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             v.violationName,
                                             style: TextStyle(
                                               fontSize: FontSizes().body,
-                                              color: Colors.white.withOpacity(0.8),
+                                              color: Colors.white.withValues(
+                                                alpha: 0.8,
+                                              ),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -623,24 +648,38 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                                                 'Fine: ₱${v.price.toStringAsFixed(2)}',
                                                 style: TextStyle(
                                                   fontSize: FontSizes().caption,
-                                                  color: Colors.white.withOpacity(0.6),
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.6),
                                                 ),
                                               ),
                                               SizedBox(width: 12),
                                               Container(
-                                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 2,
+                                                ),
                                                 decoration: BoxDecoration(
-                                                  color: _getOffenseColor(v.repetition).withOpacity(0.2),
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: _getOffenseColor(
+                                                    v.repetition,
+                                                  ).withValues(alpha: 0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
                                                   border: Border.all(
-                                                    color: _getOffenseColor(v.repetition).withOpacity(0.5),
+                                                    color: _getOffenseColor(
+                                                      v.repetition,
+                                                    ).withValues(alpha: 0.5),
                                                   ),
                                                 ),
                                                 child: Text(
-                                                  _getOrdinalNumber(v.repetition),
+                                                  _getOrdinalNumber(
+                                                    v.repetition,
+                                                  ),
                                                   style: TextStyle(
-                                                    fontSize: FontSizes().caption,
-                                                    color: _getOffenseColor(v.repetition).withOpacity(0.9),
+                                                    fontSize:
+                                                        FontSizes().caption,
+                                                    color: _getOffenseColor(
+                                                      v.repetition,
+                                                    ).withValues(alpha: 0.9),
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
@@ -665,8 +704,8 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                         onPressed: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(
-                            context, 
-                            '/appeal', 
+                            context,
+                            '/appeal',
                             arguments: violation.trackingNumber,
                           );
                         },
@@ -684,14 +723,14 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text('Close'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: BorderSide(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                           padding: EdgeInsets.symmetric(vertical: 16),
                         ),
+                        child: Text('Close'),
                       ),
                     ),
                   ],
@@ -716,14 +755,14 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
               label,
               style: TextStyle(
                 fontSize: FontSizes().body,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              
+
               style: TextStyle(
                 fontSize: FontSizes().body,
                 color: Colors.white,
@@ -785,15 +824,15 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
 
   String _getOrdinalNumber(int number) {
     if (number <= 0) return '${number}th Offense';
-    
+
     int lastDigit = number % 10;
     int lastTwoDigits = number % 100;
-    
+
     // Handle special cases for 11th, 12th, 13th
     if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
       return '${number}th Offense';
     }
-    
+
     // Handle regular cases
     // Examples: 1st, 2nd, 3rd, 4th, 5th, 21st, 22nd, 23rd, 101st, 102nd, 103rd
     switch (lastDigit) {
@@ -811,11 +850,11 @@ class _DriverViolationsPageState extends State<DriverViolationsPage> {
   Color _getOffenseColor(int repetition) {
     switch (repetition) {
       case 1:
-        return Colors.green;    // 1st offense - Green
+        return Colors.green; // 1st offense - Green
       case 2:
-        return Colors.orange;   // 2nd offense - Warning/Orange
+        return Colors.orange; // 2nd offense - Warning/Orange
       default:
-        return Colors.red;      // 3rd+ offenses - Red/Danger
+        return Colors.red; // 3rd+ offenses - Red/Danger
     }
   }
 

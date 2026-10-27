@@ -21,9 +21,12 @@ class Header extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          bottom: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
       ),
       child: Column(
@@ -45,7 +48,7 @@ class Header extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -73,7 +76,7 @@ class Header extends StatelessWidget {
           SizedBox(height: 20),
           LinearProgressIndicator(
             value: (currentStep + 1) / totalSteps,
-            backgroundColor: Colors.white.withOpacity(0.2),
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
           ),
         ],

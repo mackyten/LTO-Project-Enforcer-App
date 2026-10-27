@@ -11,28 +11,29 @@ class PhilippineMobileNumberFormatter extends TextInputFormatter {
   ) {
     // Remove all non-digits
     String digitsOnly = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
-    
+
     // If user tries to delete the +63, restore it
-    if (digitsOnly.isEmpty || (digitsOnly.length < 2 && !digitsOnly.startsWith('63'))) {
+    if (digitsOnly.isEmpty ||
+        (digitsOnly.length < 2 && !digitsOnly.startsWith('63'))) {
       return TextEditingValue(
         text: '+63',
         selection: TextSelection.collapsed(offset: 3),
       );
     }
-    
+
     // Ensure it starts with 63
     if (!digitsOnly.startsWith('63')) {
-      digitsOnly = '63' + digitsOnly;
+      digitsOnly = '63$digitsOnly';
     }
-    
+
     // Limit to 13 characters total (+63 + 10 digits)
     if (digitsOnly.length > 12) {
       digitsOnly = digitsOnly.substring(0, 12);
     }
-    
+
     // Format as +63XXXXXXXXXX
     String formatted = '+$digitsOnly';
-    
+
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
