@@ -17,7 +17,7 @@ A Flutter mobile app for traffic enforcement. Enforcers record violations in the
 
 - Flutter / Dart, with `flutter_bloc` for state management
 - Firebase Auth and Cloud Firestore
-- PayMongo, called directly over HTTP (no SDK), see [PAYMONGO_INTEGRATION.md](PAYMONGO_INTEGRATION.md)
+- PayMongo, called directly over HTTP (no SDK), see [PAYMONGO_INTEGRATION.md](docs/PAYMONGO_INTEGRATION.md)
 
 ## Project layout
 
@@ -40,10 +40,10 @@ You need your own Firebase project (`flutterfire configure`) and a PayMongo test
 
 ## Further reading
 
-- [PAYMONGO_INTEGRATION.md](PAYMONGO_INTEGRATION.md): payment flow and why it uses plain HTTP
-- [PAY_FINES_DOCUMENTATION.md](PAY_FINES_DOCUMENTATION.md): how fines are paid
-- [DEEP_LINK_SETUP.md](DEEP_LINK_SETUP.md): return-from-payment deep linking
-- [VIOLATION_SYSTEM_UPDATE.md](VIOLATION_SYSTEM_UPDATE.md): violation model changes
+- [PAYMONGO_INTEGRATION.md](docs/PAYMONGO_INTEGRATION.md): payment flow and why it uses plain HTTP
+- [PAY_FINES_DOCUMENTATION.md](docs/PAY_FINES_DOCUMENTATION.md): how fines are paid
+- [DEEP_LINK_SETUP.md](docs/DEEP_LINK_SETUP.md): return-from-payment deep linking
+- [VIOLATION_SYSTEM_UPDATE.md](docs/VIOLATION_SYSTEM_UPDATE.md): violation model changes
 
 ## License
 
