@@ -44,3 +44,7 @@ You need your own Firebase project (`flutterfire configure`) and a PayMongo test
 - [PAY_FINES_DOCUMENTATION.md](PAY_FINES_DOCUMENTATION.md): how fines are paid
 - [DEEP_LINK_SETUP.md](DEEP_LINK_SETUP.md): return-from-payment deep linking
 - [VIOLATION_SYSTEM_UPDATE.md](VIOLATION_SYSTEM_UPDATE.md): violation model changes
+
+## License
+
+[MIT](LICENSE)
